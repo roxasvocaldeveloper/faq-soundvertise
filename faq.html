@@ -85,41 +85,53 @@
   .btn-ghost { background: transparent; }
   .btn-sm { padding: 6px 14px; font-size: 11px; }
 
+  /* ---------- Layout ---------- */
+  .layout { display: flex; min-height: calc(100vh - 63px); }
+
+  /* ---------- Sidebar ---------- */
+  aside {
+    width: 270px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 22px 16px;
+    position: sticky; top: 63px; height: calc(100vh - 63px);
+    overflow-y: auto;
+  }
+  aside h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim); margin-bottom: 12px;
+  }
+  .cat-list { display: flex; flex-direction: column; gap: 4px; }
+  .cat {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 12px; border-radius: 999px; cursor: pointer;
+    color: var(--text-dim); font-size: 14px; font-weight: 500;
+    transition: background .15s ease, color .15s ease;
+    user-select: none;
+  }
+  .cat:hover { background: rgba(255, 255, 255, .08); color: var(--text); }
+  .cat.active { background: var(--grad); color: #fff; }
+  .cat .cat-name {
+    background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+    padding: 0; text-align: left; display: flex; align-items: center; gap: 8px;
+    min-width: 0; flex: 1;
+  }
+  .cat .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat .cat-name .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat .count { font-size: 11px; background: rgba(255, 255, 255, .16); padding: 1px 8px; border-radius: 20px; flex-shrink: 0; }
+  .cat.active .count { background: rgba(255, 255, 255, .25); }
+  .cat .cat-tools { display: none; gap: 2px; flex-shrink: 0; }
+  .cat:hover .cat-tools { display: inline-flex; }
+  .cat-tool { background: none; border: none; color: inherit; cursor: pointer; font-size: 13px; line-height: 1; padding: 2px 4px; border-radius: 6px; }
+  .cat-tool:hover { background: rgba(255, 255, 255, .22); }
+  .add-cat { margin-top: 14px; width: 100%; }
+
   /* ---------- Main ---------- */
-  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
+  main { flex: 1; padding: 40px 40px 100px; max-width: 920px; }
 
   .main-head { margin-bottom: 26px; }
   .main-head h1 { font-size: 34px; font-weight: 800; margin-bottom: 8px; }
   .main-head p { color: var(--text-dim); font-size: 15px; }
   .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-
-  /* ---------- Categorie (pills) ---------- */
-  .pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 30px; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 2px;
-    border: 1px solid var(--border); background: rgba(255, 255, 255, .04);
-    color: var(--text-dim); border-radius: 999px; padding: 7px 14px;
-    font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
-    transition: background .15s ease, color .15s ease, border-color .15s ease;
-    user-select: none;
-  }
-  .pill:hover { background: rgba(255, 255, 255, .09); color: var(--text); }
-  .pill.active { background: var(--grad); border-color: transparent; color: #fff; }
-  .pill .count {
-    font-size: 11px; background: rgba(255, 255, 255, .16); padding: 0 7px;
-    border-radius: 20px; margin-left: 5px; line-height: 1.6;
-  }
-  .pill.active .count { background: rgba(255, 255, 255, .25); }
-  .pill-main { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
-  .pill-tools { display: none; gap: 2px; margin-left: 4px; }
-  .pill:hover .pill-tools { display: inline-flex; }
-  .pill-tool {
-    background: none; border: none; color: inherit; cursor: pointer;
-    font-size: 13px; line-height: 1; padding: 3px 5px; border-radius: 6px;
-  }
-  .pill-tool:hover { background: rgba(255, 255, 255, .22); }
-  .add-pill { border-style: dashed; border-color: var(--secondary); color: var(--secondary); background: none; }
-  .add-pill:hover { background: rgba(139, 76, 183, .15); border-color: var(--secondary); color: var(--text); }
 
   /* ---------- Lista FAQ ---------- */
   .faq-list { display: flex; flex-direction: column; }
@@ -234,8 +246,14 @@
   }
 
   /* ---------- Responsive ---------- */
-  @media (max-width: 640px) {
-    main { padding: 24px 16px 80px; }
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    aside {
+      width: 100%; height: auto; position: static; border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-list { flex-direction: row; flex-wrap: wrap; }
+    main { padding: 24px 18px 80px; }
     .main-head h1 { font-size: 26px; }
     .header-actions .btn-ghost { display: none; }
   }
@@ -264,19 +282,21 @@
   </div>
 </header>
 
-<main>
-  <div class="main-head">
-    <h1>Domande <span class="grad">frequenti</span></h1>
-    <p>Trova la risposta cliccando su una domanda. Passa il mouse sulle categorie per rinominarle o eliminarle.</p>
-  </div>
+<div class="layout">
+  <aside>
+    <h2>Categorie</h2>
+    <nav class="cat-list" id="cat-list"></nav>
+    <button class="btn add-cat" id="btn-add-cat">+ Nuova categoria</button>
+  </aside>
 
-  <div class="pills">
-    <div id="cat-list"></div>
-    <button class="pill add-pill" id="btn-add-cat">+ Categoria</button>
-  </div>
-
-  <div class="faq-list" id="faq-list"></div>
-</main>
+  <main>
+    <div class="main-head">
+      <h1>Domande <span class="grad">frequenti</span></h1>
+      <p>Trova la risposta cliccando su una domanda. Passa il mouse sulle categorie per rinominarle o eliminarle.</p>
+    </div>
+    <div class="faq-list" id="faq-list"></div>
+  </main>
+</div>
 
 <!-- Modal aggiungi/modifica -->
 <div class="modal-backdrop" id="modal">
@@ -606,18 +626,22 @@ function renderCats() {
   nav.innerHTML = cats.map(cat => {
     const n = cat === "Tutte" ? faqData.items.length : (counts[cat] || 0);
     if (cat === "Tutte") {
-      return `<button class="pill ${cat === currentCat ? "active" : ""}" data-cat="Tutte">Tutte <span class="count">${n}</span></button>`;
+      return `<button class="cat ${cat === currentCat ? "active" : ""}" data-cat="Tutte">
+        <span class="lbl">Tutte</span><span class="count">${n}</span>
+      </button>`;
     }
-    return `<span class="pill ${cat === currentCat ? "active" : ""}">
-      <button class="pill-main" data-goto="${esc(cat)}">${esc(cat)} <span class="count">${n}</span></button>
-      <span class="pill-tools">
-        <button class="pill-tool" data-rename="${esc(cat)}" title="Rinomina">✎</button>
-        <button class="pill-tool" data-del="${esc(cat)}" title="Elimina">×</button>
+    return `<div class="cat ${cat === currentCat ? "active" : ""}">
+      <button class="cat-name" data-goto="${esc(cat)}">
+        <span class="lbl">${esc(cat)}</span><span class="count">${n}</span>
+      </button>
+      <span class="cat-tools">
+        <button class="cat-tool" data-rename="${esc(cat)}" title="Rinomina">✎</button>
+        <button class="cat-tool" data-del="${esc(cat)}" title="Elimina">×</button>
       </span>
-    </span>`;
+    </div>`;
   }).join("");
 
-  nav.querySelectorAll(".pill[data-cat]").forEach(el => {
+  nav.querySelectorAll(".cat[data-cat]").forEach(el => {
     el.addEventListener("click", () => {
       currentCat = el.dataset.cat;
       renderCats();
@@ -632,10 +656,10 @@ function renderCats() {
     });
   });
   nav.querySelectorAll("[data-rename]").forEach(b => {
-    b.addEventListener("click", () => renameCategory(b.dataset.rename));
+    b.addEventListener("click", e => { e.stopPropagation(); renameCategory(b.dataset.rename); });
   });
   nav.querySelectorAll("[data-del]").forEach(b => {
-    b.addEventListener("click", () => deleteCategory(b.dataset.del));
+    b.addEventListener("click", e => { e.stopPropagation(); deleteCategory(b.dataset.del); });
   });
 }
 

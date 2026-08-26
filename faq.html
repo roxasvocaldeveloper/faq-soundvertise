@@ -157,7 +157,8 @@
 
   .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
   .faq-a-inner { padding: 0 4px 26px; color: var(--text-dim); font-size: 15px; }
-  .faq-a-inner p + p { margin-top: 10px; }
+  .faq-answer > * + * { margin-top: 8px; }
+  .faq-answer b { color: var(--text); font-weight: 700; }
 
   .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
   .faq-images img {
@@ -200,6 +201,24 @@
   .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--secondary); }
   .field textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
   .hint { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+  .editor-toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ed-btn {
+    cursor: pointer; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); border-radius: 8px; padding: 5px 13px;
+    font-size: 12px; font-weight: 600; font-family: var(--font);
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .ed-btn:hover { background: var(--card-hover); border-color: var(--secondary); }
+  .ed-btn b { font-weight: 700; }
+  .editor-area {
+    width: 100%; min-height: 150px; padding: 11px 13px; font-size: 15px;
+    font-family: var(--font); color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 10px; outline: none;
+    transition: border-color .15s ease; overflow-y: auto; line-height: 1.5;
+  }
+  .editor-area:focus { border-color: var(--secondary); }
+  .editor-area:empty::before { content: attr(placeholder); color: var(--text-dim); pointer-events: none; }
 
   .img-uploader { display: flex; flex-direction: column; gap: 10px; }
   .img-grid { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -315,7 +334,16 @@
       </div>
       <div class="field">
         <label for="f-a">Risposta</label>
-        <textarea id="f-a" placeholder="Scrivi la risposta…"></textarea>
+        <div class="editor">
+          <div class="editor-toolbar">
+            <button type="button" class="ed-btn" data-cmd="bold" title="Grassetto"><b>B</b></button>
+            <button type="button" class="ed-btn" data-cmd="incsize" title="Aumenta dimensione testo">A+</button>
+            <button type="button" class="ed-btn" data-cmd="decsize" title="Riduci dimensione testo">A−</button>
+            <button type="button" class="ed-btn" data-cmd="remove" title="Rimuovi formattazione dal testo selezionato">Togli formato</button>
+          </div>
+          <div class="editor-area" id="f-a" contenteditable="true" placeholder="Scrivi la risposta…"></div>
+          <div class="hint">Seleziona una parola/frase, poi usa B (grassetto) o A+ / A− per ingrandire o ridurre i caratteri.</div>
+        </div>
       </div>
       <div class="field">
         <label>Immagini</label>
@@ -613,6 +641,74 @@ function toast(msg) {
 }
 
 /* ============================================================
+   FORMATTAZIONE RISPOSTE
+   ============================================================ */
+function sanitizeHtml(html) {
+  return String(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .replace(/javascript:[^"'\s]*/gi, "");
+}
+
+function renderAnswer(text) {
+  if (!text) return "";
+  if (/<[a-z][\s\S]*>/i.test(text)) return sanitizeHtml(text);
+  return esc(text).replace(/\n/g, "<br>");
+}
+
+function storedToEditor(text) {
+  if (!text) return "";
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+  return esc(text).replace(/\n/g, "<br>");
+}
+
+function htmlToStored(html) {
+  let h = String(html);
+  h = h.replace(/<div[^>]*>/gi, "<br>").replace(/<\/div>/gi, "");
+  h = h.replace(/<p[^>]*>/gi, "<br>").replace(/<\/p>/gi, "");
+  h = h.replace(/^(<br\s*\/?>)+/i, "").replace(/(<br\s*\/?>)+$/i, "");
+  return h;
+}
+
+function applySize(delta) {
+  const area = document.getElementById("f-a");
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) return;
+  let cur = 15;
+  const el = range.startContainer.nodeType === 1
+    ? range.startContainer : range.startContainer.parentElement;
+  if (el) {
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    if (fs) cur = fs;
+  }
+  const next = Math.min(Math.max(Math.round(cur + delta), 11), 40);
+  const span = document.createElement("span");
+  span.style.fontSize = next + "px";
+  span.appendChild(range.extractContents());
+  range.insertNode(span);
+  const r = document.createRange();
+  r.selectNodeContents(span);
+  sel.removeAllRanges();
+  sel.addRange(r);
+}
+
+document.querySelectorAll(".ed-btn").forEach(btn => {
+  btn.addEventListener("mousedown", e => e.preventDefault());
+  btn.addEventListener("click", () => {
+    const cmd = btn.dataset.cmd;
+    const area = document.getElementById("f-a");
+    area.focus();
+    if (cmd === "bold") document.execCommand("bold", false, null);
+    else if (cmd === "incsize") applySize(2);
+    else if (cmd === "decsize") applySize(-2);
+    else if (cmd === "remove") document.execCommand("removeFormat", false, null);
+  });
+});
+
+/* ============================================================
    RENDER — pill categorie + lista FAQ
    ============================================================ */
 function categoryCounts() {
@@ -686,7 +782,7 @@ function renderList() {
       </button>
       <div class="faq-a">
         <div class="faq-a-inner">
-          ${it.answer ? `<p>${esc(it.answer).replace(/\n/g, "<br>")}</p>` : ""}
+          ${it.answer ? `<div class="faq-answer">${renderAnswer(it.answer)}</div>` : ""}
           ${imgs ? `<div class="faq-images">${imgs}</div>` : ""}
           <div class="faq-tools">
             <button class="btn btn-sm" data-edit="${it.id}">Modifica</button>
@@ -853,7 +949,7 @@ function openModal(item) {
     catSel.value = currentCat;
   }
   document.getElementById("f-q").value = item ? item.question : "";
-  document.getElementById("f-a").value = item ? item.answer : "";
+  document.getElementById("f-a").innerHTML = storedToEditor(item ? item.answer : "");
   renderImgGrid();
 
   document.getElementById("modal").classList.add("show");
@@ -863,6 +959,7 @@ function openModal(item) {
 function closeModal() {
   document.getElementById("modal").classList.remove("show");
   document.getElementById("faq-form").reset();
+  document.getElementById("f-a").innerHTML = "";
   editingId = null;
   pendingImages = [];
   renderImgGrid();
@@ -901,7 +998,7 @@ document.getElementById("f-imgs").addEventListener("change", e => {
 document.getElementById("faq-form").addEventListener("submit", e => {
   e.preventDefault();
   const question = document.getElementById("f-q").value.trim();
-  const answer = document.getElementById("f-a").value.trim();
+  const answer = htmlToStored(document.getElementById("f-a").innerHTML).trim();
   const category = document.getElementById("f-cat").value;
   if (!question) { toast("Inserisci una domanda"); return; }
 

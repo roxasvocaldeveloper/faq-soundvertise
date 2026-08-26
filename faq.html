@@ -162,8 +162,10 @@
 
   .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
   .faq-images img {
-    max-height: 220px; max-width: 100%; border-radius: 10px;
-    border: 1px solid var(--border); cursor: zoom-in; object-fit: cover;
+    width: 100%; max-width: 540px; max-height: 400px;
+    flex-shrink: 0; object-fit: contain;
+    border-radius: 10px; border: 1px solid var(--border);
+    cursor: zoom-in; background: rgba(255, 255, 255, .03);
   }
 
   .faq-tools { display: flex; gap: 8px; margin-top: 18px; }
@@ -354,7 +356,7 @@
             Aggiungi immagine
             <input type="file" id="f-imgs" accept="image/*" multiple>
           </label>
-          <div class="hint">JPG, PNG o GIF — verrà salvata direttamente nella pagina.</div>
+          <div class="hint">JPG, PNG o GIF. Le immagini vengono ridimensionate e compresse in automatico; le GIF max 4MB.</div>
         </div>
       </div>
       <div class="modal-actions">
@@ -985,15 +987,39 @@ document.getElementById("f-imgs").addEventListener("change", e => {
   if (!files.length) return;
   files.forEach(file => {
     if (!file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      pendingImages.push(reader.result);
+    if (file.type === "image/gif" && file.size > 4 * 1024 * 1024) {
+      toast("La GIF è troppo grande (max 4MB)");
+      return;
+    }
+    processImage(file, dataUrl => {
+      pendingImages.push(dataUrl);
       renderImgGrid();
-    };
-    reader.readAsDataURL(file);
+    });
   });
   e.target.value = "";
 });
+
+function processImage(file, cb) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    // Le GIF restano animate e vengono salvate così come sono
+    if (file.type === "image/gif") { cb(reader.result); return; }
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1280;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      const isPng = file.type === "image/png";
+      cb(canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.85));
+    };
+    img.onerror = () => cb(reader.result);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 document.getElementById("faq-form").addEventListener("submit", e => {
   e.preventDefault();

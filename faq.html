@@ -366,145 +366,214 @@
 /* ============================================================
    DATI
    ============================================================ */
-const STORAGE_KEY = "soundvertise_faq";
+const STORAGE_KEY = "soundvertise_faq_v2";
 
-// Contenuto iniziale (ricostruito dal documento Pages originale).
-// Le parti marcate "[…da verificare…]" sono testi frammentari
-// che puoi correggere direttamente nella pagina.
+// Contenuto iniziale — copia fedele del documento Pages originale
+// (FAQ SOUNDVERTISE.pages), testo al 100% invariato.
 const DEFAULT_FAQ = {
   categories: [
-    "Generals",
-    "Galaxy (Trading, Playlist & Networking)",
-    "Viral (TikTok)",
-    "Piani & Abbonamenti",
-    "Free Tools",
-    "Supporto Tecnico"
+    "1- Generals",
+    "2- Galaxy (Trading di Playlist & Networking)",
+    "3- Virality",
+    "Categoria 3: Crediti, Piani & Abbonamenti",
+    "Categoria 4: Free Tools (Calculator & Utility)",
+    "Categoria 5: Supporto Tecnico e Account"
   ],
   items: [
     {
       id: "g1",
-      category: "Generals",
+      category: "1- Generals",
       question: "Soundvertise garantisce un numero specifico di stream o follower?",
-      answer: "No. Soundvertise lavora al 100% nel rispetto delle Termini di Servizio di Spotify. I nostri servizi hanno lo scopo di creare connessioni e supporto reciproco tra gli artisti, senza garanzie o pagamenti per placements. Non vendiamo stream né garantiamo cifre ufficiali.",
+      answer: "No. Soundvertise lavora al 100% nel rispetto delle Termini di Servizio di Spotify. I nostri servizi hanno lo scopo di creare connessioni e supporto reciproco tra gli artisti, senza garanzie o pagamenti per placements. Non vendiamo stream né garantiamo cifre artificiali.",
       images: []
     },
     {
       id: "g2",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Cos'è esattamente Galaxy?",
-      answer: "Galaxy è una piattaforma che aiuta i curator e gli artisti a effettuare scambi di canzoni tra le loro playlist, in modo da supportare allo stesso tempo sia i propri brani che quelli degli altri artisti.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Cos'è esattamente Soundvertise Galaxy?",
+      answer: "La Galaxy è una piattaforma che consente ai curatori di playlist/artisti, di effettuare scambi reciproci di canzoni tra le loro playlist, in modo da supportare aThe detail in this composition is clear, and it shows a lot of skill. The vibe, though, doesn’t sit within the calm sound I usually go for. Not a fit this time.stesso tempo sia I propri brani, che quelli degli altri artisti. Senza pagamenti, ma semplicemente tramite supporto reciproco.",
       images: []
     },
     {
       id: "g3",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Galaxy è gratuita?",
-      answer: "Sì, l'accesso è gratuito, previa registrazione e approvazione di almeno un brano.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "La Galaxy è gratuita?",
+      answer: "Sì, la Galaxy è una piattaforma gratuita, previa registrazione e approvazione di almeno una playlist che soddisfi i requisiti minimi.",
       images: []
     },
     {
       id: "g4",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Quali sono i requisiti per usare Galaxy?",
-      answer: "Per accedere occorre un account attivo/promosso con almeno 50 monthly listeners e 1000 saves.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Quali sono i requisiti per usare la Galaxy?",
+      answer: "Per accedere alla Galaxy, occorre avere almeno una playlist attiva/promossa che garantisca un minimo di 50 monthly listeners, e che abbia almeno 1000 saves.",
       images: []
     },
     {
       id: "g5",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Come faccio a crescere la mia carriera?",
-      answer: "Il modo migliore è fare campagne Meta Ads. Puoi promuovere le tue canzoni in modo indipendente; in caso di bisogno di aiuto contattaci pure tramite CONTACT US.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "What Spotify permissions are required when connecting an account.",
+      answer: "Playlist modify: So the platform can auto-add and remove matched tracks.\n\nPlaylist read: To check your playlist stats, genres, and active tracks.\n\nUser read: Basic profile and email verification for login. Non eseguiamo nessuna altra azione non effettuata dagli utenti nelle loro playlist/profili.",
       images: []
     },
     {
       id: "g6",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Ogni quanto posso scegliere la canzone da promuovere?",
-      answer: "Ogni 7 giorni hai la possibilità di scegliere cliccando il pulsante CHOOSE SONG.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Come fare crescere una mia playlist?",
+      answer: "Il modo migliore per far crescere una playlist è tramite campagne Meta Ads. Puoi fare crescere le tue playlist in modo indipendente, o In caso avessi bisogno del nostro aiuto, forniamo un servizio di crescita playlist, contattaci pure: CONTACT US",
       images: []
     },
     {
       id: "g7",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Cosa sono le REQUESTS e come funzionano?",
-      answer: "Le Requests vengono ricevute solo da alcuni artisti e restano attive per un periodo definito; se entri in una richiesta e non rispetti le regole, avviene una penalizzazione che riduce la tua visibilità.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Come inviare un brano nella Galaxy?",
+      answer: "Ogni 7 giorni, da Venerdì al successivo Venerdì, si può inviare un brano a scelta cliccando il pulsante CHOOSE SONG. Dopo aver confermato il brano, occorre selezionare il pianeta evidenziato in cui si ha una playlist approvata, poi aggiungere eventuali subgenres nella finestra successiva, e in automatico il brano verrà inviato a tutti gli altri utenti degli stessi generi selezionati, che hanno eseguito lo stesso processo.",
       images: []
     },
     {
       id: "g8",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Come funzionano i livelli (Bronzo, Silver, Gold)?",
-      answer: "I livelli stimano il tuo raggio di ascoltatori simili: Bronzo: 50–100, Silver: 100–200, Gold: 300+. I livelli cambiano in base alla tua attività e alla differenza di ascoltatori.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Cosa sono le REQUESTS e come funzionano?",
+      answer: "Le Requests si ricevono solo dopo aver inviato un brano nella Galaxy durante i 7 giorni. Sono le canzoni inviate dagli altri utenti per proporti uno scambio. Puoi vedere i dati di ogni artista/playlist che ti ha mandato una Request, e decidere se approvare o rifiutare la richiesta, premendo il Cuore o la X. Se entrambi gli utenti, premono il Cuore, avverrà un Match, ovvero i brani verranno inseriti nelle rispettive playlist per 30 giorni, in una posizione specifica in base al LEVEL della playlist. Se almeno uno degli utenti preme la X, il Match non avverrà, nessuno verrà notificato di questo e non vi è alcuna penalizzazione, semplicemente non può avvenire lo scambio e quindi la Request scomparirà. Nella parte destra di ogni REQUEST, sono visibili le condizioni che avverrebbero in caso di Match.",
       images: []
     },
     {
       id: "g9",
-      category: "Galaxy (Trading, Playlist & Networking)",
-      question: "Come funzionano MATCHES, Feedback & Review?",
-      answer: "Il sistema segue le linee guida e vieta severamente il payola. Preferisce scambi a lungo termine piuttosto che edit manuali, con review sui brani. Opera tramite API.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Cos'è un \"Match\" e come funziona?",
+      answer: "Un Match consiste in uno scambio reciproco di canzoni tra le playlist. Avviene quando entrambi gli utenti hanno approvato la rispettiva Request. In caso di Match, i brani vengono inseriti in automatico nelle playlist, e poi rimossi automaticamente allo scadere del Match. Nella parte a destra delle Request/Matches, si possono vedere le condizioni del Match, ovvero la durata (30 giorni), e la posizione dei brani nelle rispettive playlist. La posizione dei brani è un numero che può variare tra 15-25-35, in base al Level della playlist, per cercare di garantire uno scambio equilibrato tra le playlist che possa generare un similare numero di ascoltatori. Se due playlist sono dello stesso livello, entrambe le canzoni verrano inserite in posizione 15. Per ogni differenza di Livello tra le playlist, si applica una differenza di 10 posizioni a scendere.",
       images: []
     },
     {
       id: "g10",
-      category: "Viral (TikTok)",
-      question: "Come funziona l'upload su TikTok?",
-      answer: "L'upload è veloce, con riconoscimento audio (ad esempio Apple Music) e salvataggio automatico. Il risultato viene pubblicato con mood/aesthetic per aumentare l'engagement.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Come posso verificare la qualità delle playlist con cui faccio scambio?",
+      answer: "Approviamo e manteniamo attive solo le playlist che riteniamo organiche, attive, senza alcuna attività bot o inattività di ascoltatori. Abbiamo algoritmi interni che ci permettono di verificare le crescite e statistiche delle playlist, e chiediamo anche dati tramite Spotify 4 Artists se necessario, e usiamo altri tool di analisi dati delle playlist. Si possono sempre segnalare e riportare playlist sospette o con poca attività, per aiutarci ad analizzarle ulteriormente e verificare.",
       images: []
     },
     {
       id: "g11",
-      category: "Viral (TikTok)",
-      question: "Quali piani di pubblicazione esistono?",
-      answer: "Sono disponibili diversi piani, tra cui AUTO (1% a settimana, gratuito) e PERSONAL (7 giorni).",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Cosa sono i Levels delle playlist e come vengono decisi?",
+      answer: "Ogni Playlist ha un livello specifico (Bronzo, Silver, Gold), che determina la stima dei monthly listeners che quella playlist può garantire.\n\nBronzo: 50-100 monthly listeners\nSilver: 100 - 250 monthly listeners\nGold: 300+ monthly listeners\n\nNon potendo avere dati precisi di ascoltatori per ogni playlist, ci basiamo su diversi tool di analisi playlist, statistiche che ci mandano gli artisti tramite Spotify 4 Artists, e algoritmi interni che in base alla crescita delle playlist e stime di ascoltatori, ci danno una stima indicativa. La stima è calcolata non sui brani nelle prime posizioni, ma calcolando un range tra la posizione 15 e 50 di una playlist, dato che in 30 giorni (il periodo di ogni Match), un brano può passare da una posizione 15, e finire in una posizione molto più bassa dopo 30 giorni, quindi dobbiamo preventivamente calcolare questo, dato che più un brano scende in playlist, meno ascolti riceve.",
       images: []
     },
     {
       id: "g12",
-      category: "Viral (TikTok)",
-      question: "Come funziona l'audio?",
-      answer: "Puoi caricare un file audio (ad esempio MP3) e il sistema lo riconosce e lo associa al brano corretto.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Posso gestire più playlist dallo stesso account Galaxy?",
+      answer: "Sì, puoi collegare più playlist Spotify al tuo profilo Galaxy, però vi è il limite di una submission a settimana, quindi potrai selezionare solo una playlist/canzone a settimana da proporre nella Galaxy.",
       images: []
     },
     {
       id: "g13",
-      category: "Viral (TikTok)",
-      question: "Come funzionano le CAPTIONS?",
-      answer: "La caption può essere generata automaticamente con il pulsante GENERATE, adattata alla dimensione e poi revisionata con REVIEW per mantenerla in sync.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Come posso segnalare una playlist?",
+      answer: "Puoi contattarci tramite qua: CONTACTS US Oppure nella sezione MATCHES, puoi cliccare sul pulsante \"Feedback & Report\" che trovi nell'angolo in alto a destra di ogni scheda.",
       images: []
     },
     {
       id: "g14",
-      category: "Viral (TikTok)",
-      question: "Come funziona la pubblicazione?",
-      answer: "Con SUBMIT invii il post; puoi anche programmarlo in anticipo tramite SCHEDULED POST.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "Come viene protetto il mio account Spotify da bot o attività sospette?",
+      answer: "Utilizziamo solo canali promozionali ufficiali (pagine social con pubblicità targettizzata e la rete di curatori reali verificati di Galaxy). Questo ti protegge completamente dai rischi di penalizzazione o rimozione dei brani da parte di Spotify per stream artificiali.",
       images: []
     },
     {
       id: "g15",
-      category: "Viral (TikTok)",
-      question: "Consigli per non andare in burnout?",
-      answer: "Fai un warmup e interagisci con il pubblico. Bastano 5–10 minuti al giorno; il burnout è un problema comune, perciò gestisci bene il tuo tempo.",
+      category: "2- Galaxy (Trading di Playlist & Networking)",
+      question: "How the reciprocal playlist system complies with Spotify’s guidelines.",
+      answer: "Spotify strictly bans paying cash for playlist placements (payola). Soundvertise stays within guidelines because we uses a song-for-song swap rather than money, and requires actual editorial review (you have to approve the song). It operates via official Spotify APIs, so we're totally safe and following Spotify's compliant.",
       images: []
     },
     {
       id: "g16",
-      category: "Piani & Abbonamenti",
-      question: "Come funzionano i piani e gli abbonamenti?",
-      answer: "I piani vengono valutati esternamente e sbloccano funzioni avanzate e contenuti esclusivi. I tuoi acquisti restano disponibili finché l'abbonamento è attivo.",
+      category: "3- Virality",
+      question: "Cos'è esattamente Virality?",
+      answer: "Virality è un tool che consente di generare, editare e uploadare video su Tiktok in modo veloce, facile e ottimizzato per la promozione musicale. In ogni video Tiktok, l'audio viene riconosciuto automaticamente e collegato a Spotify/Apple Music, in modo che le persone possano scoprirlo e salvarlo in modo facile e veloce. Inoltre gli utenti cliccando sulla'audio, possono creare nuovi post con il proprio brano, aumentando le chances di viralità. Per questo è nato questo tool.",
       images: []
     },
     {
       id: "g17",
-      category: "Free Tools",
-      question: "Cosa sono i Free Tools e come funzionano?",
-      answer: "Includono strumenti come lo stream checker, il calcolo delle royalty e l'analisi geografica. Ricorda: alcuni servizi prevedono una quota fissa o una share dell'abbonamento; supportiamo Spotify, Deezer e altre piattaforme per la distribuzione.",
+      category: "3- Virality",
+      question: "Come funziona Virality?",
+      answer: "Ogni pianeta rappresenta un mood/aesthetic specifico. Cliccandoci, è possibile scoprire i post già pubblicati dagli altri utenti, per vedere l'engagement, l'estetica usata, quali hanno performato meglio ecc. Cliccando sul pulsante CHOOSE SONG, è possibile scegliere un brano già rilasciato su Spotify. Dopo bisogna scegliere tra una di queste modalità:\n\nAUTO - 1 post/week - FREE\nè possibile preparare e inviare un post a settimana. Il post verrà caricato su una pagina Tiktok con un tema specifico gestita e ottimizzata da noi.\n\nPERSONAL - 7posts for week - Soundvertise Plus\nè possibile schedulare fino a 7 post e caricarli su una tua pagina Tiktok personale. I post verranno postati 1 al giorno, nella fascia oraria scelta, sulla pagina scelta. Dopo la pubblicazione dell'ultimo post, sarà possibile schedulare nuovamente altri post.",
       images: []
     },
     {
       id: "g18",
-      category: "Supporto Tecnico",
-      question: "Come posso contattare il supporto tecnico?",
-      answer: "Puoi usare la chat dedicata e aggiungere un team alla tua pagina. Trovi il link dal sito soundvertise.co.",
+      category: "3- Virality",
+      question: "Come funzionano i video template?",
+      answer: "Selezionando un pianeta del mood, appariranno gli specifici video templates, che possono ulteriormente essere filtrati cliccando sui pulsanti dei submood, sotto ai pianeti. Ogni video è preparato da noi, tramite tool AI, personalizzato e curato per aumentare le possibilità di vitalità e avere uno stile specifico e professionale. I video vengono caricati con cadenza frequente, in modo da avere sempre varietà, originalità e personalizzazione alta.",
+      images: []
+    },
+    {
+      id: "g19",
+      category: "3- Virality",
+      question: "Come funziona l'editor?",
+      answer: "AUDIO:\nDopo aver selezionato il video template, occorre caricare l'mp3 del relativo brano selezionato su Spotify (questo step è da effettuare solo la prima volta che si usa un nuovo brano Spotify, dopo aver caricato l'mp3, il brano verrà salvato nel nostro database e associato al brano Spotify per evitare di ripetere questo passaggio). E' possibile muovere il range della forma audio per scegliere la parte da utilizzare nel video. Premendo le frecce sx/dx sulla tastiera, è possibile muovere in modo più preciso il range.\n\nCAPTIONS:\nLa caption è molto importante per aumentare l'engagement dei post, è facoltativa ma consigliamo di aggiungerla. E' possibile scriverla cliccandoci sopra, oppure cliccando sul pulsante GENERATE, la caption verrà scritta in automatico in base al mood selezionato. Con gli appositi pulsanti a lato del video template, è possibile cambiare la dimensione e posizionamento della caption.\n\nPREVIEW:\nCliccando sul pulsante Play presente nel video template, sarà possibile visionare l'anteprima del post con video in sync con il range audio selezionato. In caso di post multipli, è possibile visionarli e modificarli cliccando sulle relative anteprime in basso.\n\nPUBBLICAZIONE:\nDopo aver terminato la fase di editing, si può cliccare su SUBMIT per la pubblicazione.\n\nModalità AUTO: I post verranno messi in coda e pubblicati ad orari specifici in base alla fascia oraria ottimale della relativa pagina tiktok, che viene scelta dal sistema in base al tema scelto per il post.\n\nModalità PERSONAL: Si può selezionare la pagina Tiktok, scegliere la fascia oraria preferita di pubblicazione (che si adatterà in base al Paese nel quale la pagina Tiktok è associata).\n\nSCHEDULED: Si possono visionare i Post preparati, e i relativi dettagli della pagina Tiktok di pubblicazione, giorno e ora di pubblicazione.\n\nPOSTED: Si vedono i post pubblicati, con relativo engagement, e cliccandoci sopra si verrà reindirizzati al relativo post Tiktok.",
+      images: []
+    },
+    {
+      id: "g20",
+      category: "3- Virality",
+      question: "Quale pagina usare su Tiktok e come prepararla al meglio?",
+      answer: "La strategia migliore, è quella di creare una pagina tiktok a tema specifico, e non usare la propria pagina personale. Questo permette di ottimizzare l'algoritmo e far capire in modo specifico il target della pagina sia a livello audio che visivo. Per evitare ban o restrizioni della visibilità da parte di Tiktok, E' molto importante che la pagina Tiktok venga usata per almeno 3 giorni dopo la creazione, per effettuare un warmup. Il warmup consiste semplicemente nell'usare la pagina come un utente reale, se possibile interagendo con contenuti nello stesso target della pagina, scrollando, mettendo qualche like/commento. Bastano anche 5-10 minuti al giorno.",
+      images: []
+    },
+    {
+      id: "g21",
+      category: "3- Virality",
+      question: "E' possibile che Tiktok banni la mia pagina?",
+      answer: "Purtroppo si', questo è un problema e rischio di Tiktok, ed è per questo che si consiglia sempre l'utilizzo di pagine nuove o comunque dette \"burn out\", proprio perchè l'algoritmo di Tiktok è imprevedibile, e potrebbe bannare la pagina per poco utilizzo, oppure semplicemente limitarne la visibilità dei post. In questi casi, è consigliabile preparare una seconda pagina, per testare quale funzioni meglio, ed essere pronti in caso di ban avvenuto. Nella nostra esperienza, in 1 anno di ottimizzazione di 20 pagine, 2 sono state bannate, senza motivi e senza possibilità di recupero. Questo è molto frequente ed è al di fuori dei nostri limiti e non una colpa nostra, dato che vengono bannati anche profili personali che caricano contenuti propri.",
+      images: []
+    },
+    {
+      id: "g22",
+      category: "Categoria 3: Crediti, Piani & Abbonamenti",
+      question: "Cosa sono i Soundvertise Credits e come si usano?",
+      answer: "I Crediti sono la valuta interna della piattaforma Soundvertise. Puoi utilizzarli per sbloccare funzionalità avanzate all'interno di Galaxy o accedere a strumenti esclusivi.",
+      images: []
+    },
+    {
+      id: "g23",
+      category: "Categoria 3: Crediti, Piani & Abbonamenti",
+      question: "I miei crediti hanno una data di scadenza?",
+      answer: "I crediti acquistati non scadono mai e rimangono disponibili sul tuo account finché non decidi di utilizzarli.",
+      images: []
+    },
+    {
+      id: "g24",
+      category: "Categoria 4: Free Tools (Calculator & Utility)",
+      question: "Come funziona lo Streaming Revenue Calculator di Soundvertise?",
+      answer: "Il nostro calcolatore stima le tue royalty in base al numero di ascolti e alla provenienza geografica degli utenti. Ricorda che Spotify non paga una quota fissa per stream, ma applica un sistema basato sulla quota di mercato (stream share) e sull'abbonamento dell'ascoltatore (Free vs Premium).",
+      images: []
+    },
+    {
+      id: "g25",
+      category: "Categoria 4: Free Tools (Calculator & Utility)",
+      question: "Il calcolatore è preciso al 100%?",
+      answer: "Fornisce una stima molto accurata basata sulle medie correnti dei payout delle piattaforme (Spotify, Apple Music, Deezer). Il valore finale del tuo distributore/etichetta può variare in base al tuo contratto di distribuzione, origine degli streams geografici e ai cambi valuta.",
+      images: []
+    },
+    {
+      id: "g26",
+      category: "Categoria 5: Supporto Tecnico e Account",
+      question: "Non visualizzo la mia playlist in fase di registrazione:",
+      answer: "Assicurati di essere loggiato all'interno del tuo account Spotify corretto da curatore su Spotify, e che la tua playlist sia impostata su \"Pubblica\".",
+      images: []
+    },
+    {
+      id: "g27",
+      category: "Categoria 5: Supporto Tecnico e Account",
+      question: "Come faccio ad aggiungere nuove playlist?",
+      answer: "Premi sul tuo Avatar in alto a destra, per accedere al tuo pannello profilo. In fondo clicca sul pulsante \"Add Playlist\".",
+      images: []
+    },
+    {
+      id: "g28",
+      category: "Categoria 5: Supporto Tecnico e Account",
+      question: "Come posso contattare il team di Soundvertise se ho altre domande?",
+      answer: "Puoi utilizzare la Live Chat integrata in piattaforma o inviarci una mail a team@soundvertise.co.",
       images: []
     }
   ]

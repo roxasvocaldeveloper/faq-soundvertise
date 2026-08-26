@@ -256,6 +256,14 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .warn-banner {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 92, 108, .96); color: #fff; font-size: 14px; line-height: 1.5;
+    padding: 14px 20px; border-radius: 14px; z-index: 110;
+    max-width: min(92vw, 640px); text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  }
+
   /* ---------- Lightbox ---------- */
   .lightbox {
     position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .92);
@@ -374,6 +382,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="warn-banner" id="warn-banner" hidden>
+  <b>Attenzione:</b> i dati non sono stati salvati perché lo spazio di archiviazione del browser è pieno.
+  Rimuovi alcune immagini (soprattutto GIF) oppure usa <b>Esporta</b> / <b>Importa</b> per non perdere le modifiche.
+</div>
 
 <script>
 "use strict";
@@ -614,10 +627,12 @@ function loadData() {
 }
 
 function saveData() {
+  const banner = document.getElementById("warn-banner");
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(faqData));
+    banner.hidden = true;
   } catch (e) {
-    toast("Attenzione: spazio di archiviazione pieno. L'immagine potrebbe non essere stata salvata.");
+    banner.hidden = false;
   }
 }
 
@@ -1006,14 +1021,14 @@ function processImage(file, cb) {
     if (file.type === "image/gif") { cb(reader.result); return; }
     const img = new Image();
     img.onload = () => {
-      const MAX = 1280;
+      const MAX = 1024;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(img.width * scale));
       canvas.height = Math.max(1, Math.round(img.height * scale));
       canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
       const isPng = file.type === "image/png";
-      cb(canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.85));
+      cb(canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.8));
     };
     img.onerror = () => cb(reader.result);
     img.src = reader.result;

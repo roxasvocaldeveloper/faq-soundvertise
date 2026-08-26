@@ -792,7 +792,7 @@ function renderList() {
 
   list.innerHTML = items.map(it => {
     const imgs = (it.images || []).map(src =>
-      `<img src="${src}" alt="Immagine FAQ" loading="lazy">`).join("");
+      `<img src="${src}" alt="Immagine FAQ">`).join("");
     return `
     <div class="faq-item" data-id="${it.id}" draggable="true">
       <button class="faq-q">
@@ -818,7 +818,17 @@ function renderList() {
       const body = item.querySelector(".faq-a");
       const isOpen = item.classList.contains("open");
       item.classList.toggle("open", !isOpen);
-      body.style.maxHeight = isOpen ? "0px" : body.scrollHeight + "px";
+      if (isOpen) {
+        body.style.maxHeight = "0px";
+      } else {
+        const resize = () => { body.style.maxHeight = body.scrollHeight + "px"; };
+        resize();
+        body.querySelectorAll("img").forEach(img => {
+          if (!img.complete) img.addEventListener("load", resize, { once: true });
+        });
+        requestAnimationFrame(resize);
+        setTimeout(resize, 350);
+      }
     });
   });
 

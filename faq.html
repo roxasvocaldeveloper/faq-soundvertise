@@ -644,15 +644,13 @@ function renderCats() {
   nav.querySelectorAll(".cat[data-cat]").forEach(el => {
     el.addEventListener("click", () => {
       currentCat = el.dataset.cat;
-      renderCats();
-      renderList();
+      renderAll();
     });
   });
   nav.querySelectorAll("[data-goto]").forEach(b => {
     b.addEventListener("click", () => {
       currentCat = b.dataset.goto;
-      renderCats();
-      renderList();
+      renderAll();
     });
   });
   nav.querySelectorAll("[data-rename]").forEach(b => {

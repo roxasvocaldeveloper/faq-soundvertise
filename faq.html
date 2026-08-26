@@ -77,7 +77,7 @@
   .brand .logo svg { width: 20px; height: 20px; }
   .brand-name { font-family: var(--font-hand); font-size: 24px; letter-spacing: .3px; color: #fff; }
 
-  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
 
   .btn {
     cursor: pointer; border: 1px solid var(--border-sec); border-radius: 999px;
@@ -109,6 +109,7 @@
     display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;
     padding: 30px 20px 6px;
   }
+  #cat-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
   .pill {
     display: inline-flex; align-items: center; gap: 8px;
     border: 1px solid var(--border-sec); background: transparent;
@@ -310,10 +311,10 @@
     <span class="brand-name">Soundvertise</span>
   </a>
   <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" id="btn-export" title="Esporta i dati come file JSON"><span class="ms">download</span>Esporta</button>
-    <button class="btn btn-ghost btn-sm" id="btn-import" title="Importa i dati da file JSON"><span class="ms">upload</span>Importa</button>
+    <button class="btn btn-ghost btn-sm" id="btn-export" title="Esporta i dati come file JSON">Esporta</button>
+    <button class="btn btn-ghost btn-sm" id="btn-import" title="Importa i dati da file JSON">Importa</button>
     <input type="file" id="import-file" accept="application/json" hidden>
-    <button class="btn btn-primary btn-sm" id="btn-add-faq"><span class="ms">add</span>Aggiungi FAQ</button>
+    <button class="btn btn-primary btn-sm" id="btn-add-faq">+ Aggiungi FAQ</button>
   </div>
 </header>
 
@@ -325,7 +326,7 @@
 
   <div class="cat-bar">
     <div id="cat-list"></div>
-    <button class="pill add-pill" id="btn-add-cat"><span class="ms">add</span>Categoria</button>
+    <button class="pill add-pill" id="btn-add-cat">+ Categoria</button>
   </div>
 
   <div class="section-title grad" id="main-title"></div>
@@ -746,10 +747,10 @@ function renderCats() {
   nav.innerHTML = cats.map(cat => {
     const n = cat === "Tutte" ? faqData.items.length : (counts[cat] || 0);
     if (cat === "Tutte") {
-      return `<button class="pill ${cat === currentCat ? "active" : ""}" data-cat="Tutte"><span class="ms">apps</span>Tutte <span class="count">${n}</span></button>`;
+      return `<button class="pill ${cat === currentCat ? "active" : ""}" data-cat="Tutte">Tutte <span class="count">${n}</span></button>`;
     }
     return `<span class="pill ${cat === currentCat ? "active" : ""}">
-      <button class="pill-main" data-goto="${esc(cat)}"><span class="ms">topic</span>${esc(cat)} <span class="count">${n}</span></button>
+      <button class="pill-main" data-goto="${esc(cat)}">${esc(cat)} <span class="count">${n}</span></button>
       <span class="pill-tools">
         <button class="pill-tool" data-rename="${esc(cat)}" title="Rinomina">✎</button>
         <button class="pill-tool" data-del="${esc(cat)}" title="Elimina">×</button>

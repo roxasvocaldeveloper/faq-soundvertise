@@ -9,34 +9,29 @@
   ============================================================
   FAQ SOUNDVERTISE — pagina autocon­tenuta (singolo file)
   ------------------------------------------------------------
-  Come integrarla in soundvertise.co:
-  1. Copia questo file nel tuo progetto.
-  2. I dati vivono in localStorage (chiave "soundvertise_faq").
-     Il contenuto iniziale è definito nella variabile DEFAULT_FAQ.
-  3. Per rendere le FAQ pubbliche (solo lettura) sul sito, puoi:
-     - rimuovere i pulsanti di modifica (sezione #admin-toolbar),
-     - oppure estrarre DEFAULT_FAQ in un file JSON statico.
-  Stili: usa le variabili CSS in :root per adattare i colori.
+  Stile basato su soundvertise.co (sfondo nero, blu #116dff,
+  viola #8b4cb7, gradiente blu→viola).
+  I dati vivono in localStorage (chiave "soundvertise_faq_v2").
+  Per integrarla nel sito: copia il file; per renderla pubblica
+  in sola lettura rimuovi i pulsanti di modifica in .faq-tools.
   Nessuna dipendenza esterna, JS vanilla.
   ============================================================
 -->
 
 <style>
   :root {
-    --bg: #0f0e1a;
-    --bg-soft: #171527;
-    --card: #1c1930;
-    --card-hover: #231f3d;
-    --border: #2d2850;
-    --text: #eceaf7;
-    --text-dim: #9d98c0;
-    --accent: #7c5cff;
-    --accent-2: #ff5c9e;
-    --accent-grad: linear-gradient(90deg, #7c5cff, #ff5c9e);
+    --bg: #171717;
+    --card: #1f1f22;
+    --card-hover: #26262a;
+    --border: rgba(255, 255, 255, .1);
+    --text: #ffffff;
+    --text-dim: #a3a3a3;
+    --primary: #116dff;
+    --primary-dark: #0053d8;
+    --secondary: #8b4cb7;
+    --grad: linear-gradient(90deg, #116dff, #8b4cb7);
     --danger: #ff5c6c;
-    --radius: 14px;
-    --sidebar-w: 280px;
-    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,164 +43,133 @@
     background: var(--bg);
     color: var(--text);
     line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
   }
 
-  a { color: var(--accent); }
+  a { color: var(--primary); }
 
   /* ---------- Header ---------- */
   header {
     position: sticky; top: 0; z-index: 20;
     display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; padding: 14px 24px;
-    background: rgba(15, 14, 26, .85);
+    gap: 14px; padding: 14px 24px;
+    background: rgba(23, 23, 23, .9);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
-  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+  .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--text); }
   .brand .logo {
-    width: 38px; height: 38px; border-radius: 10px;
-    background: var(--accent-grad);
-    display: grid; place-items: center;
-    font-weight: 800; font-size: 16px; color: #fff;
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--grad);
+    display: grid; place-items: center; color: #fff;
   }
-  .brand .logo svg { width: 22px; height: 22px; }
-  .brand-name { font-weight: 700; font-size: 18px; letter-spacing: .3px; }
-  .brand-name span { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .brand .logo svg { width: 20px; height: 20px; }
+  .brand-name { font-weight: 700; font-size: 17px; letter-spacing: .2px; }
+  .brand-name .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
   .header-actions { display: flex; gap: 8px; align-items: center; }
+
   .btn {
-    cursor: pointer; border: none; border-radius: 10px;
-    padding: 9px 16px; font-size: 14px; font-weight: 600; font-family: var(--font);
-    color: var(--text); background: var(--card); border: 1px solid var(--border);
-    transition: transform .12s ease, background .15s ease, border-color .15s ease;
-    white-space: nowrap;
+    cursor: pointer; border: 1px solid var(--border); border-radius: 999px;
+    padding: 9px 18px; font-size: 12px; font-weight: 600; font-family: var(--font);
+    color: var(--text); background: rgba(255, 255, 255, .06);
+    text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    transition: background .15s ease, border-color .15s ease, transform .1s ease;
   }
-  .btn:hover { background: var(--card-hover); border-color: var(--accent); }
+  .btn:hover { background: rgba(255, 255, 255, .12); border-color: var(--secondary); }
   .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--accent-grad); border: none; color: #fff; }
-  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary { background: var(--primary); border-color: transparent; color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); border-color: transparent; }
   .btn-danger { color: var(--danger); }
   .btn-danger:hover { background: rgba(255, 92, 108, .12); border-color: var(--danger); }
   .btn-ghost { background: transparent; }
-  .btn-ghost:hover { background: var(--card); }
-  .btn-sm { padding: 6px 10px; font-size: 12.5px; border-radius: 8px; }
-
-  /* ---------- Layout ---------- */
-  .layout { display: flex; min-height: calc(100vh - 67px); }
-
-  /* ---------- Sidebar ---------- */
-  aside {
-    width: var(--sidebar-w); flex-shrink: 0;
-    border-right: 1px solid var(--border);
-    padding: 22px 16px;
-    background: var(--bg-soft);
-    position: sticky; top: 67px; height: calc(100vh - 67px);
-    overflow-y: auto;
-  }
-  aside h2 {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--text-dim); margin-bottom: 12px;
-  }
-  .cat-list { display: flex; flex-direction: column; gap: 4px; }
-  .cat {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 9px 12px; border-radius: 10px; cursor: pointer;
-    color: var(--text-dim); font-size: 14px; font-weight: 500;
-    transition: background .15s ease, color .15s ease;
-    user-select: none;
-  }
-  .cat:hover { background: var(--card); color: var(--text); }
-  .cat.active { background: var(--accent-grad); color: #fff; }
-  .cat .cat-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .cat .cat-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: .9; }
-  .cat .count {
-    font-size: 11px; background: rgba(255,255,255,.14); padding: 1px 8px;
-    border-radius: 20px; flex-shrink: 0;
-  }
-  .cat .del-cat {
-    display: none; border: none; background: none; color: inherit;
-    cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 6px;
-  }
-  .cat:hover .del-cat { display: block; }
-  .cat .del-cat:hover { background: rgba(255,255,255,.2); }
-  .add-cat {
-    margin-top: 14px; width: 100%;
-  }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
 
   /* ---------- Main ---------- */
-  main { flex: 1; padding: 32px 40px 80px; max-width: 900px; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
 
-  .main-head { margin-bottom: 24px; }
-  .main-head h1 { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+  .main-head { margin-bottom: 26px; }
+  .main-head h1 { font-size: 34px; font-weight: 800; margin-bottom: 8px; }
   .main-head p { color: var(--text-dim); font-size: 15px; }
-  .main-head .grad { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-  .faq-list { display: flex; flex-direction: column; gap: 14px; }
-
-  /* ---------- FAQ item (accordion) ---------- */
-  .faq-item {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-    transition: border-color .2s ease;
+  /* ---------- Categorie (pills) ---------- */
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 30px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 2px;
+    border: 1px solid var(--border); background: rgba(255, 255, 255, .04);
+    color: var(--text-dim); border-radius: 999px; padding: 7px 14px;
+    font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+    user-select: none;
   }
-  .faq-item:hover { border-color: var(--accent); }
-  .faq-item.open { border-color: var(--accent); }
+  .pill:hover { background: rgba(255, 255, 255, .09); color: var(--text); }
+  .pill.active { background: var(--grad); border-color: transparent; color: #fff; }
+  .pill .count {
+    font-size: 11px; background: rgba(255, 255, 255, .16); padding: 0 7px;
+    border-radius: 20px; margin-left: 5px; line-height: 1.6;
+  }
+  .pill.active .count { background: rgba(255, 255, 255, .25); }
+  .pill-main { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+  .pill-tools { display: none; gap: 2px; margin-left: 4px; }
+  .pill:hover .pill-tools { display: inline-flex; }
+  .pill-tool {
+    background: none; border: none; color: inherit; cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 3px 5px; border-radius: 6px;
+  }
+  .pill-tool:hover { background: rgba(255, 255, 255, .22); }
+  .add-pill { border-style: dashed; border-color: var(--secondary); color: var(--secondary); background: none; }
+  .add-pill:hover { background: rgba(139, 76, 183, .15); border-color: var(--secondary); color: var(--text); }
+
+  /* ---------- Lista FAQ ---------- */
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item { border-bottom: 1px solid var(--border); }
 
   .faq-q {
     display: flex; align-items: center; gap: 14px;
     width: 100%; text-align: left;
     background: none; border: none; cursor: pointer;
-    padding: 18px 20px; color: var(--text);
+    padding: 20px 4px; color: var(--text);
     font-family: var(--font); font-size: 16px; font-weight: 600; line-height: 1.4;
+    transition: color .15s ease;
   }
-  .faq-q:hover { background: var(--card-hover); }
+  .faq-q:hover { color: var(--secondary); }
   .faq-q .chev {
-    margin-left: auto; flex-shrink: 0; width: 22px; height: 22px;
-    transition: transform .25s ease; color: var(--accent);
+    margin-left: auto; flex-shrink: 0; width: 20px; height: 20px;
+    transition: transform .25s ease; color: var(--secondary);
   }
   .faq-item.open .chev { transform: rotate(180deg); }
-  .faq-cat-chip {
-    flex-shrink: 0; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--accent);
-    background: rgba(124, 92, 255, .12); border: 1px solid rgba(124, 92, 255, .35);
-    padding: 2px 9px; border-radius: 30px;
-  }
 
-  .faq-a {
-    max-height: 0; overflow: hidden;
-    transition: max-height .3s ease;
-  }
-  .faq-a-inner { padding: 0 20px 20px; color: var(--text-dim); font-size: 15px; }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .faq-a-inner { padding: 0 4px 26px; color: var(--text-dim); font-size: 15px; }
+  .faq-a-inner p + p { margin-top: 10px; }
 
-  .faq-a p + p { margin-top: 10px; }
-
-  .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 4px; }
+  .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
   .faq-images img {
     max-height: 220px; max-width: 100%; border-radius: 10px;
-    border: 1px solid var(--border); cursor: zoom-in;
-    object-fit: cover;
+    border: 1px solid var(--border); cursor: zoom-in; object-fit: cover;
   }
 
-  .faq-tools { display: flex; gap: 8px; margin-top: 16px; }
+  .faq-tools { display: flex; gap: 8px; margin-top: 18px; }
 
   .empty {
     text-align: center; color: var(--text-dim); padding: 60px 20px;
-    border: 1px dashed var(--border); border-radius: var(--radius);
+    border: 1px dashed var(--border); border-radius: 14px;
   }
   .empty strong { display: block; color: var(--text); margin-bottom: 6px; }
 
   /* ---------- Modal ---------- */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 50;
-    background: rgba(5, 4, 12, .75);
+    background: rgba(0, 0, 0, .8);
     display: none; align-items: flex-start; justify-content: center;
     padding: 40px 16px; overflow-y: auto;
   }
   .modal-backdrop.show { display: flex; }
   .modal {
-    background: var(--bg-soft); border: 1px solid var(--border);
+    background: var(--card); border: 1px solid var(--border);
     border-radius: 16px; width: 100%; max-width: 640px;
-    padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    padding: 24px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
   }
   .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 18px; }
   .field { margin-bottom: 16px; }
@@ -214,11 +178,11 @@
   .field textarea,
   .field select {
     width: 100%; padding: 11px 13px; font-size: 14px; font-family: var(--font);
-    color: var(--text); background: var(--card);
+    color: var(--text); background: var(--bg);
     border: 1px solid var(--border); border-radius: 10px; outline: none;
     transition: border-color .15s ease;
   }
-  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--secondary); }
   .field textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
   .hint { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
 
@@ -232,16 +196,16 @@
   .img-thumb .rm {
     position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
     border-radius: 50%; border: none; cursor: pointer;
-    background: rgba(0,0,0,.7); color: #fff; font-size: 13px; line-height: 1;
+    background: rgba(0, 0, 0, .7); color: #fff; font-size: 13px; line-height: 1;
     display: grid; place-items: center;
   }
   .img-thumb .rm:hover { background: var(--danger); }
   .file-input-label {
     cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 14px; border-radius: 10px; border: 1px dashed var(--accent);
-    color: var(--accent); font-size: 13.5px; font-weight: 600; width: fit-content;
+    padding: 10px 14px; border-radius: 999px; border: 1px dashed var(--secondary);
+    color: var(--secondary); font-size: 13px; font-weight: 600; width: fit-content;
   }
-  .file-input-label:hover { background: rgba(124,92,255,.1); }
+  .file-input-label:hover { background: rgba(139, 76, 183, .12); }
   .file-input-label input { display: none; }
 
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
@@ -249,16 +213,16 @@
   /* ---------- Toast ---------- */
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--accent-grad); color: #fff; font-weight: 600; font-size: 14px;
-    padding: 12px 22px; border-radius: 30px; z-index: 100; opacity: 0;
+    background: var(--grad); color: #fff; font-weight: 600; font-size: 14px;
+    padding: 12px 22px; border-radius: 999px; z-index: 100; opacity: 0;
     transition: opacity .25s ease, transform .25s ease;
-    pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    pointer-events: none; box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* ---------- Lightbox ---------- */
   .lightbox {
-    position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.92);
+    position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .92);
     display: none; align-items: center; justify-content: center; padding: 24px;
   }
   .lightbox.show { display: flex; }
@@ -266,19 +230,14 @@
   .lightbox .close {
     position: absolute; top: 20px; right: 26px; width: 40px; height: 40px;
     border-radius: 50%; border: none; cursor: pointer; font-size: 18px;
-    background: rgba(255,255,255,.12); color: #fff; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .12); color: #fff; display: grid; place-items: center;
   }
 
   /* ---------- Responsive ---------- */
-  @media (max-width: 860px) {
-    .layout { flex-direction: column; }
-    aside {
-      width: 100%; height: auto; position: static; border-right: none;
-      border-bottom: 1px solid var(--border);
-    }
-    .cat-list { flex-direction: row; flex-wrap: wrap; }
-    main { padding: 24px 18px 70px; }
-    .main-head h1 { font-size: 24px; }
+  @media (max-width: 640px) {
+    main { padding: 24px 16px 80px; }
+    .main-head h1 { font-size: 26px; }
+    .header-actions .btn-ghost { display: none; }
   }
 </style>
 </head>
@@ -287,33 +246,37 @@
 <header>
   <a class="brand" href="#">
     <span class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4l5-2V12l-5-2z"/><path d="M8 12h13"/><path d="M8 12v0a3 3 0 0 0 3 3h10"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+        <path d="M12 3a3 3 0 0 1 3 3c0 1.6-1.3 2.9-3 2.9S9 7.6 9 6a3 3 0 0 1 3-3z"/>
+        <path d="M12 21a3 3 0 0 1-3-3c0-1.6 1.3-2.9 3-2.9s3 1.3 3 2.9a3 3 0 0 1-3 3z"/>
+        <path d="M3 12a3 3 0 0 1 3-3c1.6 0 2.9 1.3 2.9 3s-1.3 3-2.9 3a3 3 0 0 1-3-3z"/>
+        <path d="M21 12a3 3 0 0 1-3-3c-1.6 0-2.9 1.3-2.9 3s1.3 3 2.9 3a3 3 0 0 1 3-3z"/>
+      </svg>
     </span>
-    <span class="brand-name">Sound<span>vertise</span></span>
+    <span class="brand-name">Sound<span class="grad">vertise</span></span>
   </a>
   <div class="header-actions">
     <button class="btn btn-ghost btn-sm" id="btn-export" title="Esporta i dati come file JSON">Esporta</button>
     <button class="btn btn-ghost btn-sm" id="btn-import" title="Importa i dati da file JSON">Importa</button>
     <input type="file" id="import-file" accept="application/json" hidden>
-    <button class="btn btn-primary" id="btn-add-faq">+ Aggiungi FAQ</button>
+    <button class="btn btn-primary btn-sm" id="btn-add-faq">+ Aggiungi FAQ</button>
   </div>
 </header>
 
-<div class="layout">
-  <aside>
-    <h2>Categorie</h2>
-    <nav class="cat-list" id="cat-list"></nav>
-    <button class="btn add-cat" id="btn-add-cat">+ Nuova categoria</button>
-  </aside>
+<main>
+  <div class="main-head">
+    <h1>Domande <span class="grad">frequenti</span></h1>
+    <p>Trova la risposta cliccando su una domanda. Passa il mouse sulle categorie per rinominarle o eliminarle.</p>
+  </div>
 
-  <main>
-    <div class="main-head">
-      <h1>Domande <span class="grad">frequenti</span></h1>
-      <p>Trova le risposte cliccando su una domanda. Puoi aggiungere, modificare o eliminare le FAQ e allegare immagini.</p>
-    </div>
-    <div class="faq-list" id="faq-list"></div>
-  </main>
-</div>
+  <div class="pills">
+    <div id="cat-list"></div>
+    <button class="pill add-pill" id="btn-add-cat">+ Categoria</button>
+  </div>
+
+  <div class="faq-list" id="faq-list"></div>
+</main>
 
 <!-- Modal aggiungi/modifica -->
 <div class="modal-backdrop" id="modal">
@@ -628,7 +591,7 @@ function toast(msg) {
 }
 
 /* ============================================================
-   RENDER — sidebar + lista
+   RENDER — pill categorie + lista FAQ
    ============================================================ */
 function categoryCounts() {
   const counts = {};
@@ -636,35 +599,43 @@ function categoryCounts() {
   return counts;
 }
 
-function renderSidebar() {
+function renderCats() {
   const nav = document.getElementById("cat-list");
   const counts = categoryCounts();
   const cats = ["Tutte", ...faqData.categories];
   nav.innerHTML = cats.map(cat => {
     const n = cat === "Tutte" ? faqData.items.length : (counts[cat] || 0);
-    const icon = cat === "Tutte"
-      ? `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`
-      : `<svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`;
-    const del = (cat !== "Tutte")
-      ? `<button class="del-cat" data-del="${esc(cat)}" title="Elimina categoria">×</button>` : "";
-    return `<div class="cat ${cat === currentCat ? "active" : ""}" data-cat="${esc(cat)}">
-      <span class="cat-name">${icon}<span>${esc(cat)}</span></span>
-      <span class="count">${n}</span>${del}
-    </div>`;
+    if (cat === "Tutte") {
+      return `<button class="pill ${cat === currentCat ? "active" : ""}" data-cat="Tutte">Tutte <span class="count">${n}</span></button>`;
+    }
+    return `<span class="pill ${cat === currentCat ? "active" : ""}">
+      <button class="pill-main" data-goto="${esc(cat)}">${esc(cat)} <span class="count">${n}</span></button>
+      <span class="pill-tools">
+        <button class="pill-tool" data-rename="${esc(cat)}" title="Rinomina">✎</button>
+        <button class="pill-tool" data-del="${esc(cat)}" title="Elimina">×</button>
+      </span>
+    </span>`;
   }).join("");
 
-  nav.querySelectorAll(".cat[data-cat]").forEach(el => {
+  nav.querySelectorAll(".pill[data-cat]").forEach(el => {
     el.addEventListener("click", () => {
       currentCat = el.dataset.cat;
-      renderSidebar();
+      renderCats();
       renderList();
     });
   });
-  nav.querySelectorAll(".del-cat").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      deleteCategory(btn.dataset.del);
+  nav.querySelectorAll("[data-goto]").forEach(b => {
+    b.addEventListener("click", () => {
+      currentCat = b.dataset.goto;
+      renderCats();
+      renderList();
     });
+  });
+  nav.querySelectorAll("[data-rename]").forEach(b => {
+    b.addEventListener("click", () => renameCategory(b.dataset.rename));
+  });
+  nav.querySelectorAll("[data-del]").forEach(b => {
+    b.addEventListener("click", () => deleteCategory(b.dataset.del));
   });
 }
 
@@ -681,8 +652,8 @@ function renderList() {
   }
 
   list.innerHTML = items.map(it => {
-    const imgs = (it.images || []).map((src, idx) =>
-      `<img src="${src}" alt="Immagine FAQ" data-lb="${idx}" loading="lazy">`).join("");
+    const imgs = (it.images || []).map(src =>
+      `<img src="${src}" alt="Immagine FAQ" loading="lazy">`).join("");
     return `
     <div class="faq-item" data-id="${it.id}">
       <button class="faq-q">
@@ -723,7 +694,7 @@ function renderList() {
   });
 }
 
-function renderAll() { renderSidebar(); renderList(); }
+function renderAll() { renderCats(); renderList(); }
 
 /* ============================================================
    AZIONI — categorie
@@ -736,21 +707,37 @@ function addCategory() {
   if (faqData.categories.includes(trimmed)) { toast("Categoria già esistente"); return; }
   faqData.categories.push(trimmed);
   saveData();
-  renderSidebar();
   currentCat = trimmed;
-  renderSidebar(); renderList();
+  renderAll();
   toast("Categoria aggiunta");
+}
+
+function renameCategory(name) {
+  const newName = prompt("Nuovo nome per la categoria:", name);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed || trimmed === name) return;
+  if (faqData.categories.includes(trimmed)) { toast("Esiste già una categoria con questo nome"); return; }
+  const idx = faqData.categories.indexOf(name);
+  if (idx === -1) return;
+  faqData.categories[idx] = trimmed;
+  faqData.items.forEach(i => { if (i.category === name) i.category = trimmed; });
+  if (currentCat === name) currentCat = trimmed;
+  saveData();
+  renderAll();
+  toast("Categoria rinominata");
 }
 
 function deleteCategory(name) {
   const items = faqData.items.filter(i => i.category === name).length;
+  const target = faqData.categories.find(c => c !== name) || "Generals";
   const msg = items > 0
-    ? `La categoria contiene ${items} FAQ che verranno spostate in "Generals". Eliminare comunque?`
+    ? `La categoria contiene ${items} FAQ che verranno spostate in "${target}". Eliminare comunque?`
     : `Eliminare la categoria "${name}"?`;
   if (!confirm(msg)) return;
   faqData.categories = faqData.categories.filter(c => c !== name);
-  faqData.items.forEach(i => { if (i.category === name) i.category = "Generals"; });
-  if (!faqData.categories.includes("Generals")) faqData.categories.unshift("Generals");
+  faqData.items.forEach(i => { if (i.category === name) i.category = target; });
+  if (!faqData.categories.includes(target)) faqData.categories.unshift(target);
   if (currentCat === name) currentCat = "Tutte";
   saveData();
   renderAll();

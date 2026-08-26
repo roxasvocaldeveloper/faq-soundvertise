@@ -136,7 +136,9 @@
 
   /* ---------- Lista FAQ ---------- */
   .faq-list { display: flex; flex-direction: column; }
-  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-item { border-bottom: 1px solid var(--border); user-select: none; cursor: grab; }
+  .faq-item.dragging { opacity: .4; cursor: grabbing; }
+  .faq-item.dragging .faq-a { pointer-events: none; }
 
   .faq-q {
     display: flex; align-items: center; gap: 14px;
@@ -677,7 +679,7 @@ function renderList() {
     const imgs = (it.images || []).map(src =>
       `<img src="${src}" alt="Immagine FAQ" loading="lazy">`).join("");
     return `
-    <div class="faq-item" data-id="${it.id}">
+    <div class="faq-item" data-id="${it.id}" draggable="true">
       <button class="faq-q">
         <span>${esc(it.question)}</span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -714,6 +716,58 @@ function renderList() {
   list.querySelectorAll(".faq-images img").forEach(img => {
     img.addEventListener("click", () => openLightbox(img.src));
   });
+
+  list.querySelectorAll(".faq-item").forEach(el => {
+    el.addEventListener("dragstart", () => el.classList.add("dragging"));
+    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+  });
+  list.addEventListener("dragover", e => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    const dragging = list.querySelector(".dragging");
+    if (!dragging) return;
+    const after = getDragAfterElement(list, e.clientY);
+    if (after == null) list.appendChild(dragging);
+    else list.insertBefore(dragging, after);
+  });
+  list.addEventListener("drop", e => e.preventDefault());
+  list.addEventListener("dragend", () => commitOrder());
+}
+
+function getDragAfterElement(list, y) {
+  const els = [...list.querySelectorAll(".faq-item:not(.dragging)")];
+  let closest = { offset: -Infinity, element: null };
+  for (const el of els) {
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      closest = { offset, element: el };
+    }
+  }
+  return closest.element;
+}
+
+function commitOrder() {
+  const list = document.getElementById("faq-list");
+  const newIds = [...list.querySelectorAll(".faq-item")].map(el => el.dataset.id);
+  if (!newIds.length) return;
+  const newSet = new Set(newIds);
+  const byId = new Map(faqData.items.map(i => [i.id, i]));
+  const result = [];
+  let di = 0;
+  for (const item of faqData.items) {
+    if (newSet.has(item.id)) {
+      if (di < newIds.length) result.push(byId.get(newIds[di]));
+      di++;
+    } else {
+      result.push(item);
+    }
+  }
+  newIds.forEach(id => {
+    if (!result.some(i => i.id === id)) result.push(byId.get(id));
+  });
+  faqData.items = result;
+  saveData();
 }
 
 function renderAll() { renderCats(); renderList(); updateTitle(); }

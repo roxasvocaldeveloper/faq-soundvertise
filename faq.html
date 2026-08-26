@@ -105,6 +105,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 8px 12px; border-radius: 999px; cursor: pointer;
     color: var(--text-dim); font-size: 14px; font-weight: 500;
+    background: none; border: none; font-family: inherit;
     transition: background .15s ease, color .15s ease;
     user-select: none;
   }
@@ -291,8 +292,7 @@
 
   <main>
     <div class="main-head">
-      <h1>Domande <span class="grad">frequenti</span></h1>
-      <p>Trova la risposta cliccando su una domanda. Passa il mouse sulle categorie per rinominarle o eliminarle.</p>
+      <h1 id="main-title"></h1>
     </div>
     <div class="faq-list" id="faq-list"></div>
   </main>
@@ -718,7 +718,12 @@ function renderList() {
   });
 }
 
-function renderAll() { renderCats(); renderList(); }
+function renderAll() { renderCats(); renderList(); updateTitle(); }
+
+function updateTitle() {
+  const title = document.getElementById("main-title");
+  title.textContent = currentCat === "Tutte" ? "Tutte le domande" : currentCat;
+}
 
 /* ============================================================
    AZIONI — categorie

@@ -640,15 +640,16 @@ const DEFAULT_FAQ = {
 /* ============================================================
    STATO
    ============================================================ */
+// Modalità pubblica: se attiva, la pagina è in sola lettura
+// (niente pulsanti di modifica, niente salvataggio).
+// Deve essere definita PRIMA di loadData(), che la usa.
+const IS_PUBLIC = new URLSearchParams(location.search).has("public") || window.SV_FAQ_PUBLIC === true;
+if (IS_PUBLIC) document.body.classList.add("is-public");
+
 let faqData = loadData();
 let currentCat = ""; // "" = tutte le categorie (raggruppate)
 let editingId = null;
 let pendingImages = [];
-
-// Modalità pubblica: se attiva, la pagina è in sola lettura
-// (niente pulsanti di modifica, niente salvataggio).
-const IS_PUBLIC = new URLSearchParams(location.search).has("public") || window.SV_FAQ_PUBLIC === true;
-if (IS_PUBLIC) document.body.classList.add("is-public");
 
 function loadData() {
   if (IS_PUBLIC) return JSON.parse(JSON.stringify(DEFAULT_FAQ));

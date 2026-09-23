@@ -1439,7 +1439,7 @@ document.getElementById("btn-public").addEventListener("click", () => {
   let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
   const dataJson = JSON.stringify(faqData, null, 2).replace(/<\/script/gi, "<\\/script");
   html = html.replace(/const DEFAULT_FAQ = \{[\s\S]*?\n\};/, "const DEFAULT_FAQ = " + dataJson + ";");
-  if (!/SV_FAQ_PUBLIC/.test(html)) {
+  if (!html.includes("window.SV_FAQ_PUBLIC = true;")) {
     html = html.replace(/"use strict";/, '"use strict";\n    window.SV_FAQ_PUBLIC = true;');
   }
   const blob = new Blob([html], { type: "text/html" });

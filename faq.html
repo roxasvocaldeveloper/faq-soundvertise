@@ -1115,7 +1115,11 @@ function updateTitle() {
   sub.style.display = "";
   title.textContent = currentCat;
   const n = faqData.items.filter(i => i.category === currentCat).length;
-  sub.textContent = n === 1 ? "1 domanda" : n + " domande";
+  const customSub = {
+    "2- Galaxy (Trading di Playlist & Networking)": "playlist exchanges between artists",
+    "3- Virality": "create viral contents with your songs"
+  }[currentCat];
+  sub.textContent = customSub || (n === 1 ? "1 domanda" : n + " domande");
 }
 
 function renderMedia() {

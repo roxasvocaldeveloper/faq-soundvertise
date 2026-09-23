@@ -146,6 +146,14 @@
   }
   .section-sub { text-align: center; color: var(--text-dim); font-size: 13px; margin-bottom: 22px; }
 
+  .cat-media-wrap { text-align: center; }
+  .cat-media { display: flex; justify-content: center; margin-bottom: 20px; }
+  .cat-media-el {
+    max-width: 100%; max-height: 340px; border-radius: 14px;
+    border: 1px solid var(--border-sec); background: rgba(255, 255, 255, .03);
+  }
+  .cat-media-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+
   .group-title {
     font-family: var(--font-hand); font-size: 26px; font-weight: 400; color: #fff;
     margin: 34px 0 6px; text-align: center;
@@ -354,6 +362,15 @@
   <div class="section-title grad" id="main-title"></div>
   <div class="section-sub" id="main-sub"></div>
 
+  <div class="cat-media-wrap">
+    <div class="cat-media" id="cat-media"></div>
+    <div class="cat-media-tools admin-only" id="cat-media-tools" style="display:none">
+      <button class="btn btn-sm" id="btn-cat-media">+ Media</button>
+      <button class="btn btn-sm btn-danger" id="btn-cat-media-remove" hidden>Rimuovi media</button>
+      <input type="file" id="cat-media-input" accept="image/*,video/*" hidden>
+    </div>
+  </div>
+
   <div class="faq-list" id="faq-list"></div>
 </main>
 
@@ -437,6 +454,7 @@ const DEFAULT_FAQ = {
     "Categoria 4: Free Tools (Calculator & Utility)",
     "Categoria 5: Supporto Tecnico e Account"
   ],
+  categoryMedia: {},
   items: [
     {
       id: "g1",
@@ -1084,7 +1102,7 @@ function commitOrder() {
   saveData();
 }
 
-function renderAll() { renderCats(); renderList(); updateTitle(); }
+function renderAll() { renderCats(); renderList(); updateTitle(); renderMedia(); }
 
 function updateTitle() {
   const title = document.getElementById("main-title");
@@ -1099,6 +1117,25 @@ function updateTitle() {
   title.textContent = currentCat;
   const n = faqData.items.filter(i => i.category === currentCat).length;
   sub.textContent = n === 1 ? "1 domanda" : n + " domande";
+}
+
+function renderMedia() {
+  const box = document.getElementById("cat-media");
+  const tools = document.getElementById("cat-media-tools");
+  const removeBtn = document.getElementById("btn-cat-media-remove");
+  const isCat = currentCat !== "";
+  const media = isCat ? (faqData.categoryMedia || {})[currentCat] : null;
+
+  if (media) {
+    const isVideo = media.startsWith("data:video/") || /\.(mp4|webm|mov)(\?|$)/i.test(media);
+    box.innerHTML = isVideo
+      ? `<video class="cat-media-el" src="${media}" controls autoplay muted loop playsinline></video>`
+      : `<img class="cat-media-el" src="${media}" alt="">`;
+  } else {
+    box.innerHTML = "";
+  }
+  tools.style.display = (isCat && !IS_PUBLIC) ? "flex" : "none";
+  removeBtn.hidden = !media;
 }
 
 /* ============================================================
@@ -1338,6 +1375,38 @@ document.addEventListener("keydown", e => {
 document.getElementById("btn-add-faq").addEventListener("click", () => openModal(null));
 document.getElementById("btn-add-cat").addEventListener("click", addCategory);
 
+// Media della categoria (GIF/video sotto il titolo)
+document.getElementById("btn-cat-media").addEventListener("click", () =>
+  document.getElementById("cat-media-input").click());
+
+document.getElementById("cat-media-input").addEventListener("change", e => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file || currentCat === "") return;
+  const set = dataUrl => {
+    faqData.categoryMedia = faqData.categoryMedia || {};
+    faqData.categoryMedia[currentCat] = dataUrl;
+    saveData();
+    renderMedia();
+    toast("Media della categoria aggiornato");
+  };
+  if (file.type.startsWith("image/")) {
+    processImage(file, set);
+  } else if (file.type.startsWith("video/")) {
+    if (file.size > 30 * 1024 * 1024) { toast("Video troppo grande (max 30MB)"); return; }
+    fileToDataUrl(file).then(set);
+  } else {
+    toast("Seleziona un'immagine o un video");
+  }
+});
+
+document.getElementById("btn-cat-media-remove").addEventListener("click", () => {
+  if (faqData.categoryMedia) delete faqData.categoryMedia[currentCat];
+  saveData();
+  renderMedia();
+  toast("Media rimosso");
+});
+
 // Scarica la versione pubblica (sola lettura) con i dati correnti già inclusi
 document.getElementById("btn-public").addEventListener("click", () => {
   let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
@@ -1407,6 +1476,7 @@ document.getElementById("import-file").addEventListener("change", e => {
    ============================================================ */
 (async function init() {
   faqData = await loadData();
+  if (!faqData.categoryMedia) faqData.categoryMedia = {};
   renderAll();
 
   // Apre la domanda specifica se l'URL contiene #faq-<id>

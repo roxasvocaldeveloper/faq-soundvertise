@@ -423,6 +423,7 @@
    DATI
    ============================================================ */
 const STORAGE_KEY = "soundvertise_faq_v2";
+const BACKUP_KEY = STORAGE_KEY + "_backup";
 
 // Contenuto iniziale — copia fedele del documento Pages originale
 // (FAQ SOUNDVERTISE.pages), testo al 100% invariato.
@@ -657,6 +658,17 @@ function loadData() {
       if (parsed && Array.isArray(parsed.items)) return parsed;
     }
   } catch (e) { /* dati corrotti → ricarica default */ }
+  // Tenta il ripristino dal backup automatico
+  try {
+    const b = localStorage.getItem(BACKUP_KEY);
+    if (b) {
+      const parsed = JSON.parse(b);
+      if (parsed && Array.isArray(parsed.items) && parsed.items.length) {
+        setTimeout(() => toast("Dati ripristinati dal backup automatico"), 400);
+        return parsed;
+      }
+    }
+  } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT_FAQ));
 }
 
@@ -665,8 +677,10 @@ let saveBusy = false;
 function saveData() {
   if (IS_PUBLIC) return;
   const banner = document.getElementById("warn-banner");
+  const json = JSON.stringify(faqData);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(faqData));
+    localStorage.setItem(STORAGE_KEY, json);
+    localStorage.setItem(BACKUP_KEY, json);
     banner.hidden = true;
   } catch (e) {
     banner.hidden = false;

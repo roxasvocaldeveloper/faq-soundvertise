@@ -1229,10 +1229,21 @@ document.getElementById("f-imgs").addEventListener("change", e => {
 });
 
 function processImage(file, cb) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    // Le GIF restano animate e vengono salvate così come sono
-    if (file.type === "image/gif") { cb(reader.result); return; }
+  // GIF: comprimi con gifsicle se è grande, altrimenti tieni l'originale
+  if (file.type === "image/gif") {
+    if (file.size > 400 * 1024) {
+      toast("Compressione GIF in corso…");
+      compressGif(file).then(
+        dataUrl => { toast("GIF compressa"); cb(dataUrl); },
+        () => fileToDataUrl(file).then(cb)
+      );
+    } else {
+      fileToDataUrl(file).then(cb);
+    }
+    return;
+  }
+  // Altri formati: ridimensiona e comprimi via canvas
+  fileToDataUrl(file).then(dataUrl => {
     const img = new Image();
     img.onload = () => {
       const MAX = 1024;
@@ -1244,10 +1255,48 @@ function processImage(file, cb) {
       const isPng = file.type === "image/png";
       cb(canvas.toDataURL(isPng ? "image/png" : "image/jpeg", 0.8));
     };
-    img.onerror = () => cb(reader.result);
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
+    img.onerror = () => cb(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+let _gifsicle = null;
+function loadGifsicle() {
+  return new Promise((resolve, reject) => {
+    if (_gifsicle) return resolve(_gifsicle);
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/gifsicle-wasm-browser@1.5.19/dist/gifsicle.min.js";
+    s.onload = () => {
+      const g = (typeof gifsicle !== "undefined") ? gifsicle : null;
+      if (!g) return reject(new Error("gifsicle non disponibile"));
+      _gifsicle = g;
+      resolve(g);
+    };
+    s.onerror = () => reject(new Error("download gifsicle fallito"));
+    document.head.appendChild(s);
+  });
+}
+
+async function compressGif(file) {
+  const g = await loadGifsicle();
+  const outFiles = await g.run({
+    input: [{ file: file, name: "1.gif" }],
+    command: ["--resize 480x_ -O1 --lossy=60 1.gif -o /out/out.gif"]
+  });
+  const out = outFiles[0];
+  if (!out) throw new Error("nessun output");
+  // se il risultato è più grande dell'originale, tieni l'originale
+  if (out.size >= file.size) return fileToDataUrl(file);
+  return fileToDataUrl(out);
 }
 
 document.getElementById("faq-form").addEventListener("submit", e => {

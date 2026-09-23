@@ -146,6 +146,12 @@
   }
   .section-sub { text-align: center; color: var(--text-dim); font-size: 13px; margin-bottom: 22px; }
 
+  .group-title {
+    font-family: var(--font-hand); font-size: 26px; font-weight: 400; color: #fff;
+    margin: 34px 0 6px; text-align: center;
+  }
+  .group-title:first-child { margin-top: 0; }
+
   /* ---------- Lista FAQ ---------- */
   .faq-list { display: flex; flex-direction: column; }
   .faq-item { border-bottom: 1px solid var(--border); user-select: none; cursor: grab; scroll-margin-top: 84px; }
@@ -634,7 +640,7 @@ const DEFAULT_FAQ = {
    STATO
    ============================================================ */
 let faqData = loadData();
-let currentCat = faqData.categories[0] || "";
+let currentCat = ""; // "" = tutte le categorie (raggruppate)
 let editingId = null;
 let pendingImages = [];
 
@@ -826,7 +832,8 @@ function renderCats() {
 
   nav.querySelectorAll("[data-goto]").forEach(b => {
     b.addEventListener("click", () => {
-      currentCat = b.dataset.goto;
+      // clic sulla categoria già attiva → torna a "tutte le categorie"
+      currentCat = (currentCat === b.dataset.goto) ? "" : b.dataset.goto;
       renderAll();
     });
   });
@@ -840,41 +847,30 @@ function renderCats() {
 
 function renderList() {
   const list = document.getElementById("faq-list");
-  const items = faqData.items.filter(i => i.category === currentCat);
-
-  if (items.length === 0) {
-    list.innerHTML = `<div class="empty">
+  const emptyHtml = `<div class="empty">
       <strong>Nessuna FAQ qui</strong>
       Clicca su “+ Aggiungi FAQ” per crearne una nuova.
     </div>`;
-    return;
-  }
 
-  list.innerHTML = items.map(it => {
-    const imgs = (it.images || []).map(src =>
-      `<img src="${src}" alt="Immagine FAQ">`).join("");
-    return `
-    <div class="faq-item" data-id="${it.id}" id="faq-${it.id}" ${IS_PUBLIC ? "" : 'draggable="true"'}>
-      <div class="faq-head">
-        <button class="faq-q">
-          <span>${esc(it.question)}</span>
-          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <button class="q-link" data-link="${it.id}" title="Copia link a questa domanda" aria-label="Copia link">⧉</button>
-      </div>
-      <div class="faq-a">
-        <div class="faq-a-inner">
-          ${it.answer ? `<div class="faq-answer">${renderAnswer(it.answer)}</div>` : ""}
-          ${imgs ? `<div class="faq-images">${imgs}</div>` : ""}
-          ${IS_PUBLIC ? "" : `
-          <div class="faq-tools">
-            <button class="btn btn-sm" data-edit="${it.id}">Modifica</button>
-            <button class="btn btn-sm btn-danger" data-delitem="${it.id}">Elimina</button>
-          </div>`}
-        </div>
-      </div>
-    </div>`;
-  }).join("");
+  let html;
+  if (currentCat === "") {
+    // Vista "tutte le categorie": domande raggruppate per categoria
+    html = "";
+    const known = new Set(faqData.categories);
+    for (const cat of faqData.categories) {
+      const its = faqData.items.filter(i => i.category === cat);
+      if (!its.length) continue;
+      html += `<h3 class="group-title">${esc(cat)}</h3>` + its.map(itemHtml).join("");
+    }
+    const orphans = faqData.items.filter(i => !known.has(i.category));
+    if (orphans.length) html += orphans.map(itemHtml).join("");
+    if (!html) { list.innerHTML = emptyHtml; return; }
+  } else {
+    const items = faqData.items.filter(i => i.category === currentCat);
+    if (items.length === 0) { list.innerHTML = emptyHtml; return; }
+    html = items.map(itemHtml).join("");
+  }
+  list.innerHTML = html;
 
   list.querySelectorAll(".faq-q").forEach(q => {
     q.addEventListener("click", () => {
@@ -913,7 +909,8 @@ function renderList() {
     img.addEventListener("click", () => openLightbox(img.src));
   });
 
-  if (!IS_PUBLIC) {
+  // Trascinamento per riordinare disponibile solo dentro una singola categoria
+  if (!IS_PUBLIC && currentCat !== "") {
     list.querySelectorAll(".faq-item").forEach(el => {
       el.addEventListener("dragstart", () => el.classList.add("dragging"));
       el.addEventListener("dragend", () => el.classList.remove("dragging"));
@@ -930,6 +927,32 @@ function renderList() {
     list.addEventListener("drop", e => e.preventDefault());
     list.addEventListener("dragend", () => commitOrder());
   }
+}
+
+function itemHtml(it) {
+  const imgs = (it.images || []).map(src =>
+    `<img src="${src}" alt="Immagine FAQ">`).join("");
+  return `
+    <div class="faq-item" data-id="${it.id}" id="faq-${it.id}" ${(IS_PUBLIC || currentCat === "") ? "" : 'draggable="true"'}>
+      <div class="faq-head">
+        <button class="faq-q">
+          <span>${esc(it.question)}</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="q-link" data-link="${it.id}" title="Copia link a questa domanda" aria-label="Copia link">⧉</button>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          ${it.answer ? `<div class="faq-answer">${renderAnswer(it.answer)}</div>` : ""}
+          ${imgs ? `<div class="faq-images">${imgs}</div>` : ""}
+          ${IS_PUBLIC ? "" : `
+          <div class="faq-tools">
+            <button class="btn btn-sm" data-edit="${it.id}">Modifica</button>
+            <button class="btn btn-sm btn-danger" data-delitem="${it.id}">Elimina</button>
+          </div>`}
+        </div>
+      </div>
+    </div>`;
 }
 
 function copyFaqLink(id) {
@@ -1008,6 +1031,13 @@ function renderAll() { renderCats(); renderList(); updateTitle(); }
 function updateTitle() {
   const title = document.getElementById("main-title");
   const sub = document.getElementById("main-sub");
+  if (currentCat === "") {
+    title.style.display = "none";
+    sub.style.display = "none";
+    return;
+  }
+  title.style.display = "";
+  sub.style.display = "";
   title.textContent = currentCat;
   const n = faqData.items.filter(i => i.category === currentCat).length;
   sub.textContent = n === 1 ? "1 domanda" : n + " domande";
@@ -1055,7 +1085,7 @@ function deleteCategory(name) {
   faqData.categories = faqData.categories.filter(c => c !== name);
   faqData.items.forEach(i => { if (i.category === name) i.category = target; });
   if (!faqData.categories.includes(target)) faqData.categories.unshift(target);
-  if (currentCat === name) currentCat = faqData.categories[0] || "";
+  if (currentCat === name) currentCat = "";
   saveData();
   renderAll();
   toast("Categoria eliminata");
@@ -1250,7 +1280,7 @@ document.getElementById("import-file").addEventListener("change", e => {
       if (!confirm("Importare i dati sostituendo le FAQ correnti?")) return;
       faqData = parsed;
       if (!Array.isArray(faqData.categories)) faqData.categories = [];
-      currentCat = faqData.categories[0] || "";
+      currentCat = "";
       saveData();
       renderAll();
       toast("Dati importati");

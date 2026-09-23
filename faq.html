@@ -188,9 +188,9 @@
   .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
   .faq-a-inner { padding: 0 4px 26px; color: var(--text-dim); font-size: 15px; }
   .faq-answer > * + * { margin-top: 8px; }
-  .faq-answer b { color: var(--primary); font-weight: 700; }
+  .faq-answer b { color: var(--text); font-weight: 700; }
 
-  .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
+  .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; justify-content: center; }
   .faq-images img {
     width: 100%; max-width: 540px; max-height: 400px;
     flex-shrink: 0; object-fit: contain;
@@ -645,27 +645,60 @@ const DEFAULT_FAQ = {
 const IS_PUBLIC = new URLSearchParams(location.search).has("public") || window.SV_FAQ_PUBLIC === true;
 if (IS_PUBLIC) document.body.classList.add("is-public");
 
-let faqData = loadData();
+let faqData = null;
 let currentCat = ""; // "" = tutte le categorie (raggruppate)
 let editingId = null;
 let pendingImages = [];
 
-function loadData() {
+/* ---- IndexedDB (quota molto più grande di localStorage) ---- */
+const IDB_NAME = "soundvertise-faq";
+const IDB_STORE = "kv";
+const IDB_KEY = "faqData";
+let _idb = null;
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    if (_idb) return resolve(_idb);
+    if (!("indexedDB" in window)) return reject(new Error("no idb"));
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => { _idb = req.result; resolve(_idb); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function idbGet(key) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const rq = tx.objectStore(IDB_STORE).get(key);
+    rq.onsuccess = () => resolve(rq.result);
+    rq.onerror = () => reject(rq.error);
+  }));
+}
+
+function idbSet(key, value) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+async function loadData() {
   if (IS_PUBLIC) return JSON.parse(JSON.stringify(DEFAULT_FAQ));
+  // 1) IndexedDB (spazio ampio)
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const v = await idbGet(IDB_KEY);
+    if (v && Array.isArray(v.items)) return v;
+  } catch (e) { /* IndexedDB non disponibile */ }
+  // 2) Migrazione da localStorage (dati esistenti)
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(BACKUP_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.items)) return parsed;
-    }
-  } catch (e) { /* dati corrotti → ricarica default */ }
-  // Tenta il ripristino dal backup automatico
-  try {
-    const b = localStorage.getItem(BACKUP_KEY);
-    if (b) {
-      const parsed = JSON.parse(b);
-      if (parsed && Array.isArray(parsed.items) && parsed.items.length) {
-        setTimeout(() => toast("Dati ripristinati dal backup automatico"), 400);
+      if (parsed && Array.isArray(parsed.items)) {
+        idbSet(IDB_KEY, parsed).catch(() => {});
         return parsed;
       }
     }
@@ -675,19 +708,29 @@ function loadData() {
 
 let saveBusy = false;
 
-function saveData() {
+async function saveData() {
   if (IS_PUBLIC) return;
   const banner = document.getElementById("warn-banner");
-  const json = JSON.stringify(faqData);
   try {
-    localStorage.setItem(STORAGE_KEY, json);
-    localStorage.setItem(BACKUP_KEY, json);
+    await idbSet(IDB_KEY, faqData);
+    // Backup anche su localStorage (se ci sta)
+    try {
+      const json = JSON.stringify(faqData);
+      localStorage.setItem(BACKUP_KEY, json);
+    } catch (e) {}
     banner.hidden = true;
   } catch (e) {
-    banner.hidden = false;
-    if (!saveBusy) {
-      saveBusy = true;
-      optimizeAndRetrySave().finally(() => { saveBusy = false; });
+    // Fallback: solo localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(faqData));
+      banner.hidden = true;
+      return;
+    } catch (e2) {
+      banner.hidden = false;
+      if (!saveBusy) {
+        saveBusy = true;
+        optimizeAndRetrySave().finally(() => { saveBusy = false; });
+      }
     }
   }
 }
@@ -1309,11 +1352,14 @@ document.getElementById("import-file").addEventListener("change", e => {
 /* ============================================================
    INIT
    ============================================================ */
-renderAll();
+(async function init() {
+  faqData = await loadData();
+  renderAll();
 
-// Apre la domanda specifica se l'URL contiene #faq-<id>
-const hashId = location.hash.match(/^#faq-(.+)$/);
-if (hashId) openItemById(hashId[1]);
+  // Apre la domanda specifica se l'URL contiene #faq-<id>
+  const hashId = location.hash.match(/^#faq-(.+)$/);
+  if (hashId) openItemById(hashId[1]);
+})();
 </script>
 </body>
 </html>

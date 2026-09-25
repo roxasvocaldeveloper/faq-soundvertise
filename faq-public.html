@@ -854,6 +854,18 @@ function renderAnswer(text) {
   return esc(text).replace(/\n/g, "<br>");
 }
 
+function htmlToText(html) {
+  let s = String(html || "");
+  s = s.replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/<\/(p|div|li|h[1-6]|section|ul|ol)>/gi, "\n");
+  const ta = document.createElement("textarea");
+  ta.innerHTML = s;
+  s = ta.value;
+  s = s.replace(/\u00a0/g, " ");
+  s = s.replace(/\n[ \t]*\n[ \t]*\n+/g, "\n\n");
+  return s.trim();
+}
+
 function storedToEditor(text) {
   if (!text) return "";
   if (/<[a-z][\s\S]*>/i.test(text)) return text;
@@ -1464,7 +1476,19 @@ document.getElementById("lightbox").addEventListener("click", e => {
 });
 
 document.getElementById("btn-export").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(faqData, null, 2)], { type: "application/json" });
+  // Esporta i contenuti in testo semplice (senza codice HTML nelle risposte)
+  const clean = {
+    categories: faqData.categories,
+    categoryMedia: faqData.categoryMedia || {},
+    items: (faqData.items || []).map(it => ({
+      id: it.id,
+      category: it.category,
+      question: htmlToText(it.question),
+      answer: htmlToText(it.answer),
+      images: it.images || []
+    }))
+  };
+  const blob = new Blob([JSON.stringify(clean, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "soundvertise-faq.json";

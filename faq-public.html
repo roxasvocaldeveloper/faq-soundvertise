@@ -914,6 +914,42 @@ function renderAnswer(text) {
   return esc(text).replace(/\n/g, "<br>");
 }
 
+// Converte i puntini "•" (o "- ") in veri elenchi <ul><li>
+function convertBulletsToLists(html) {
+  if (!html) return html;
+  let s = String(html).replace(/<br\s*\/?>/gi, "\n");
+  const lines = s.split("\n");
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const st = lines[i].trim();
+    if (st === "") { out.push("\n"); i++; continue; }
+    if (st.startsWith("•") || st.startsWith("- ")) {
+      const items = [];
+      while (i < lines.length) {
+        const cur = lines[i].trim();
+        if (cur.startsWith("•") || cur.startsWith("- ")) {
+          items.push("<li>" + cur.replace(/^[•-]\s*/, "").replace(/^&nbsp;\s*/, "").trim() + "</li>");
+          i++;
+        } else if (cur === "" && i + 1 < lines.length && /^[•-]\s/.test(lines[i + 1].trim())) {
+          i++;
+        } else break;
+      }
+      out.push("<ul>" + items.join("") + "</ul>");
+    } else {
+      out.push(lines[i]);
+      i++;
+    }
+  }
+  let result = "";
+  let prevBlank = false;
+  for (const ln of out) {
+    if (ln === "\n") { result += "<br><br>"; prevBlank = true; }
+    else { if (result && !prevBlank) result += "<br>"; result += ln; prevBlank = false; }
+  }
+  return result;
+}
+
 function cleanHtml(html) {
   // Pulisce l'HTML mantenendo il markup semantico (b, br, li, ecc.)
   // ma rimuovendo attributi, classi e tag inutili (span, font, style).
@@ -1904,6 +1940,15 @@ document.getElementById("api-download-imgs").addEventListener("click", () => {
 (async function init() {
   faqData = await loadData();
   if (!faqData.categoryMedia) faqData.categoryMedia = {};
+  // Normalizza: converte eventuali puntini "•" rimasti in veri elenchi <ul><li>
+  let bulletsChanged = false;
+  faqData.items.forEach(it => {
+    if (it.answer && /•|(^|\n)-\s/.test(it.answer)) {
+      it.answer = convertBulletsToLists(it.answer);
+      bulletsChanged = true;
+    }
+  });
+  if (bulletsChanged) saveData();
   renderAll();
 
   // Opens the specific question if the URL contains #faq-<id>

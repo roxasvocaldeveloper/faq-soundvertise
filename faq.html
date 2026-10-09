@@ -197,8 +197,17 @@
   .faq-a-inner { padding: 0 4px 26px; color: var(--text-dim); font-size: 15px; }
   .faq-answer > * + * { margin-top: 8px; }
   .faq-answer b { color: var(--text); font-weight: 700; }
-  .faq-answer ul { margin: 8px 0 8px 20px; padding: 0; }
-  .faq-answer li { margin: 5px 0; }
+  .faq-answer ul { margin: 8px 0 8px 0; padding: 0; list-style: none; }
+  .faq-answer li { margin: 5px 0; position: relative; padding-left: 24px; }
+  .faq-answer li::before {
+    content: "•";
+    position: absolute;
+    left: 2px;
+    top: 0.05em;
+    color: var(--secondary);
+    font-size: 1.7em;
+    line-height: 1;
+  }
 
   .faq-images { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; justify-content: center; }
   .faq-images img {

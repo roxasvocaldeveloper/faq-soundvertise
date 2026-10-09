@@ -136,6 +136,7 @@
   .pill-tool:hover { background: rgba(255, 255, 255, .22); }
   .add-pill { border-style: dashed; border-color: var(--secondary); color: var(--secondary); }
   .add-pill:hover { background: rgba(139, 76, 183, .15); border-color: var(--secondary); color: var(--text); }
+  .pill.dragging { opacity: .4; cursor: grabbing; }
 
   /* ---------- Main ---------- */
   main { max-width: 860px; margin: 0 auto; padding: 24px 24px 100px; }
@@ -1054,7 +1055,7 @@ function renderCats() {
   const cats = activeData().categories;
   nav.innerHTML = cats.map(cat => {
     const n = counts[cat] || 0;
-    return `<span class="pill ${cat === currentCat ? "active" : ""}">
+    return `<span class="pill ${cat === currentCat ? "active" : ""}" ${isReadOnly() ? "" : 'draggable="true"'} data-catname="${esc(cat)}">
       <button class="pill-main" data-goto="${esc(cat)}">${esc(cat)} <span class="count">${n}</span></button>
       ${isReadOnly() ? "" : `
       <span class="pill-tools">
@@ -1077,6 +1078,37 @@ function renderCats() {
   nav.querySelectorAll("[data-del]").forEach(b => {
     b.addEventListener("click", e => { e.stopPropagation(); deleteCategory(b.dataset.del); });
   });
+
+  // Drag-to-reorder categories
+  if (!isReadOnly()) {
+    nav.querySelectorAll(".pill[draggable]").forEach(el => {
+      el.addEventListener("dragstart", () => el.classList.add("dragging"));
+      el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    });
+    nav.addEventListener("dragover", e => {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+      const dragging = nav.querySelector(".dragging");
+      if (!dragging) return;
+      const after = getDragAfterElement(nav, e.clientX, e.clientY);
+      if (after == null) nav.appendChild(dragging);
+      else nav.insertBefore(dragging, after);
+    });
+    nav.addEventListener("drop", e => e.preventDefault());
+    nav.addEventListener("dragend", () => commitCategoryOrder());
+  }
+}
+
+function commitCategoryOrder() {
+  const nav = document.getElementById("cat-list");
+  const order = [...nav.querySelectorAll(".pill[data-catname]")].map(el => el.dataset.catname);
+  if (!order.length) return;
+  // mantiene le categorie non in lista (dovrebbero esserci tutte)
+  const rest = activeData().categories.filter(c => !order.includes(c));
+  faqData.categories = [...order, ...rest];
+  saveData();
+  renderAll();
+  toast("Order saved");
 }
 
 function renderList() {
@@ -1143,8 +1175,8 @@ function renderList() {
     img.addEventListener("click", () => openLightbox(img.src));
   });
 
-  // Drag-to-reorder available only within a single category
-  if (!isReadOnly() && currentCat !== "") {
+  // Drag-to-reorder questions (within the current view)
+  if (!isReadOnly()) {
     list.querySelectorAll(".faq-item").forEach(el => {
       el.addEventListener("dragstart", () => el.classList.add("dragging"));
       el.addEventListener("dragend", () => el.classList.remove("dragging"));
@@ -1154,7 +1186,7 @@ function renderList() {
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
       const dragging = list.querySelector(".dragging");
       if (!dragging) return;
-      const after = getDragAfterElement(list, e.clientY);
+      const after = getDragAfterElement(list, e.clientX, e.clientY);
       if (after == null) list.appendChild(dragging);
       else list.insertBefore(dragging, after);
     });
@@ -1167,7 +1199,7 @@ function itemHtml(it) {
   const imgs = (it.images || []).map(src =>
     `<img src="${src}" alt="FAQ image">`).join("");
   return `
-    <div class="faq-item" data-id="${it.id}" id="faq-${it.id}" ${(isReadOnly() || currentCat === "") ? "" : 'draggable="true"'}>
+    <div class="faq-item" data-id="${it.id}" id="faq-${it.id}" ${isReadOnly() ? "" : 'draggable="true"'}>
       <div class="faq-head">
         <button class="faq-q">
           <span>${esc(it.question)}</span>
@@ -1224,17 +1256,21 @@ function openItemById(id) {
   }
 }
 
-function getDragAfterElement(list, y) {
-  const els = [...list.querySelectorAll(".faq-item:not(.dragging)")];
-  let closest = { offset: -Infinity, element: null };
+function getDragAfterElement(container, x, y) {
+  const els = [...container.querySelectorAll(":scope > [draggable]:not(.dragging)")];
+  if (!els.length) return null;
+  let closest = els[0], best = Infinity;
   for (const el of els) {
-    const box = el.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
-    if (offset < 0 && offset > closest.offset) {
-      closest = { offset, element: el };
-    }
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const d = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+    if (d < best) { best = d; closest = el; }
   }
-  return closest.element;
+  const r = closest.getBoundingClientRect();
+  if (y < r.top + r.height / 2) return closest;
+  let nxt = closest.nextElementSibling;
+  while (nxt && !nxt.hasAttribute("draggable")) nxt = nxt.nextElementSibling;
+  return nxt;
 }
 
 function commitOrder() {

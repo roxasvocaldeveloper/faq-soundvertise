@@ -283,6 +283,12 @@
   }
   .file-input-label:hover { background: rgba(139, 76, 183, .12); }
   .file-input-label input { display: none; }
+  .img-url-row { display: flex; gap: 8px; align-items: center; }
+  .img-url-row input {
+    flex: 1; padding: 9px 12px; font-size: 13px; font-family: var(--font);
+    color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; outline: none;
+  }
+  .img-url-row input:focus { border-color: var(--secondary); }
 
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
@@ -382,6 +388,8 @@
     <div class="cat-media-tools admin-only" id="cat-media-tools" style="display:none">
       <button class="btn btn-sm" id="btn-cat-media">+ Media</button>
       <button class="btn btn-sm btn-danger" id="btn-cat-media-remove" hidden>Remove media</button>
+      <input type="text" id="cat-media-url" placeholder="...or paste a video/image URL" style="flex:1; max-width:320px; padding:6px 10px; font-size:12px; border-radius:999px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none">
+      <button class="btn btn-sm" id="btn-cat-media-url">Add URL</button>
       <input type="file" id="cat-media-input" accept="image/*,video/*" hidden>
     </div>
   </div>
@@ -424,7 +432,11 @@
             Add image
             <input type="file" id="f-imgs" accept="image/*" multiple>
           </label>
-          <div class="hint">JPG, PNG or GIF. Images are resized and compressed automatically; GIFs up to 50MB.</div>
+          <div class="img-url-row">
+            <input type="text" id="f-img-url" placeholder="...or paste an image URL (https://...)" style="flex:1">
+            <button type="button" class="btn btn-sm" id="f-img-url-add">Add URL</button>
+          </div>
+          <div class="hint">JPG, PNG or GIF. Images are resized and compressed automatically; GIFs up to 50MB. Or paste a hosted URL so it's included directly in the export.</div>
         </div>
       </div>
       <div class="modal-actions">
@@ -1369,6 +1381,20 @@ document.getElementById("f-imgs").addEventListener("change", e => {
   e.target.value = "";
 });
 
+function addImageUrl() {
+  const input = document.getElementById("f-img-url");
+  const url = input.value.trim();
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) { toast("Enter a valid http(s) URL"); return; }
+  pendingImages.push(url);
+  renderImgGrid();
+  input.value = "";
+}
+document.getElementById("f-img-url-add").addEventListener("click", addImageUrl);
+document.getElementById("f-img-url").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); addImageUrl(); }
+});
+
 function processImage(file, cb) {
   // GIF: compress with gifsicle if large, otherwise keep the original
   if (file.type === "image/gif") {
@@ -1482,6 +1508,23 @@ document.getElementById("btn-add-cat").addEventListener("click", addCategory);
 // Category media (GIF/video under the title)
 document.getElementById("btn-cat-media").addEventListener("click", () =>
   document.getElementById("cat-media-input").click());
+
+function addCatMediaUrl() {
+  const input = document.getElementById("cat-media-url");
+  const url = input.value.trim();
+  if (!url || currentCat === "") return;
+  if (!/^https?:\/\//i.test(url)) { toast("Enter a valid http(s) URL"); return; }
+  faqData.categoryMedia = faqData.categoryMedia || {};
+  faqData.categoryMedia[currentCat] = url;
+  saveData();
+  renderMedia();
+  input.value = "";
+  toast("Category media updated");
+}
+document.getElementById("btn-cat-media-url").addEventListener("click", addCatMediaUrl);
+document.getElementById("cat-media-url").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); addCatMediaUrl(); }
+});
 
 document.getElementById("cat-media-input").addEventListener("change", e => {
   const file = e.target.files[0];
@@ -1765,22 +1808,35 @@ function exportApiFormat() {
   if (!apiData) { toast("Load the API first (Compare)"); return ""; }
   const pageMap = new Map();
   faqData.items.forEach(it => pageMap.set(apiNorm(it.question), it));
-  const data = apiData.data.map(cat => ({
-    slug: cat.slug,
-    label: cat.label,
-    description: cat.description,
-    icon: cat.icon,
-    video: cat.video,
-    questions: (cat.questions || []).map(q => {
-      const p = pageMap.get(apiNorm(q.question));
-      return {
-        key: q.key,
-        question: p ? p.question : q.question,
-        answer: p ? htmlToMarkdown(p.answer) : q.answer,
-        image: q.image
-      };
-    })
-  }));
+  const myMedia = faqData.categoryMedia || {};
+  const data = apiData.data.map(cat => {
+    // cerca il media di categoria della mia versione (per nome) da usare come video
+    const myCat = Object.keys(myMedia).find(name =>
+      cat.label.toLowerCase().startsWith(name.toLowerCase()) || cat.slug === name.toLowerCase());
+    const video = (myCat && /^https?:\/\//i.test(myMedia[myCat])) ? myMedia[myCat] : cat.video;
+    return {
+      slug: cat.slug,
+      label: cat.label,
+      description: cat.description,
+      icon: cat.icon,
+      video,
+      questions: (cat.questions || []).map(q => {
+        const p = pageMap.get(apiNorm(q.question));
+        // se la mia versione ha un'immagine con URL (non base64), la includo
+        let image = q.image;
+        if (p && Array.isArray(p.images) && p.images.length) {
+          const first = p.images[0];
+          if (/^https?:\/\//i.test(first)) image = { url: first, alt: p.question };
+        }
+        return {
+          key: q.key,
+          question: p ? p.question : q.question,
+          answer: p ? htmlToMarkdown(p.answer) : q.answer,
+          image
+        };
+      })
+    };
+  });
   return JSON.stringify({ data }, null, 2);
 }
 

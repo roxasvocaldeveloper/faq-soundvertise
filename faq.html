@@ -286,6 +286,17 @@
 
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
+  .api-diff { margin-top: 16px; font-size: 13px; color: var(--text-dim); max-height: 320px; overflow-y: auto; }
+  .api-diff .row { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; background: var(--bg); }
+  .api-diff .row.only-api { border-color: rgba(17, 109, 255, .4); }
+  .api-diff .row.only-page { border-color: rgba(255, 92, 108, .4); }
+  .api-diff .row.changed { border-color: rgba(139, 76, 183, .4); }
+  .api-diff .tag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 8px; border-radius: 20px; margin-right: 6px; }
+  .tag.only-api { background: rgba(17, 109, 255, .18); color: #8bb8ff; }
+  .tag.only-page { background: rgba(255, 92, 108, .18); color: #ff9aa3; }
+  .tag.changed { background: rgba(139, 76, 183, .18); color: #c4a3da; }
+  .api-diff .q { color: var(--text); }
+
   /* ---------- Toast ---------- */
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
@@ -346,6 +357,7 @@
     <button class="btn btn-ghost btn-sm admin-only" id="btn-import" title="Import data from JSON file">Import</button>
     <input type="file" id="import-file" accept="application/json" hidden>
     <button class="btn btn-ghost btn-sm admin-only" id="btn-public" title="Download the read-only public version">Publish</button>
+    <button class="btn btn-ghost btn-sm admin-only" id="btn-api" title="Compare and export in the developer API format">API Sync</button>
     <button class="btn btn-primary btn-sm admin-only" id="btn-add-faq">+ Add FAQ</button>
   </div>
 </header>
@@ -426,6 +438,29 @@
 <div class="lightbox" id="lightbox">
   <button class="close" id="lb-close">×</button>
   <img id="lb-img" alt="">
+</div>
+
+<!-- Modal API Sync -->
+<div class="modal-backdrop" id="api-modal">
+  <div class="modal" style="max-width: 900px;">
+    <h3>API Sync</h3>
+    <div class="field">
+      <label>Paste the developer's API JSON (the {"data":[...]} object)</label>
+      <textarea id="api-input" style="min-height:110px" placeholder='{"data":[{"slug":"...","questions":[...]}]}'></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="api-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="api-load">Compare</button>
+    </div>
+    <div id="api-diff" class="api-diff"></div>
+    <div class="field" id="api-export-wrap" style="display:none; margin-top:16px">
+      <label>Export in the developer's API format (copy &amp; paste to the developer)</label>
+      <textarea id="api-output" style="min-height:180px" readonly></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="api-copy">Copy JSON</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1524,6 +1559,148 @@ document.getElementById("import-file").addEventListener("change", e => {
   };
   reader.readAsText(file);
   e.target.value = "";
+});
+
+/* ============================================================
+   API SYNC
+   ============================================================ */
+let apiData = null;
+
+function apiNorm(s) {
+  return String(s || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\*\*/g, "")
+    .replace(/(^|\s)[-•]\s/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function flattenApi(data) {
+  const out = [];
+  for (const cat of data) {
+    for (const q of (cat.questions || [])) {
+      out.push({ slug: cat.slug, key: q.key, question: q.question, answer: q.answer });
+    }
+  }
+  return out;
+}
+
+function htmlToMarkdown(html) {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = String(html);
+  function walk(node) {
+    let out = "";
+    for (const ch of Array.from(node.childNodes)) {
+      if (ch.nodeType === 3) { out += ch.textContent; continue; }
+      if (ch.nodeType !== 1) continue;
+      const tag = ch.tagName.toLowerCase();
+      if (tag === "br") { out += "\n"; continue; }
+      if (tag === "b" || tag === "strong") { out += "**" + walk(ch) + "**"; continue; }
+      if (tag === "i" || tag === "em") { out += "*" + walk(ch) + "*"; continue; }
+      if (tag === "ul" || tag === "ol") {
+        for (const li of Array.from(ch.querySelectorAll(":scope > li"))) out += "- " + walk(li) + "\n";
+        continue;
+      }
+      if (tag === "p" || tag === "div" || tag === "h1" || tag === "h2" || tag === "h3") { out += walk(ch) + "\n\n"; continue; }
+      out += walk(ch);
+    }
+    return out;
+  }
+  let md = walk(div);
+  md = md.replace(/[ \t]+\n/g, "\n");
+  md = md.replace(/\n{3,}/g, "\n\n");
+  return md.trim();
+}
+
+function compareApi() {
+  const raw = document.getElementById("api-input").value.trim();
+  if (!raw) { toast("Paste the API JSON first"); return; }
+  try { apiData = JSON.parse(raw); } catch (e) { toast("Invalid JSON"); return; }
+  if (!apiData || !Array.isArray(apiData.data)) { toast("Missing data[] array"); return; }
+
+  const apiQs = flattenApi(apiData.data);
+  const apiMap = new Map();
+  apiQs.forEach(q => apiMap.set(apiNorm(q.question), q));
+  const pageMap = new Map();
+  faqData.items.forEach(it => pageMap.set(apiNorm(it.question), it));
+
+  const onlyApi = [], onlyPage = [], changed = [], same = [];
+  for (const q of apiQs) {
+    const key = apiNorm(q.question);
+    const p = pageMap.get(key);
+    if (!p) { onlyApi.push(q); continue; }
+    if (apiNorm(q.answer) === apiNorm(p.answer)) same.push(q);
+    else changed.push({ api: q, page: p });
+  }
+  faqData.items.forEach(it => {
+    if (!apiMap.has(apiNorm(it.question))) onlyPage.push(it);
+  });
+
+  const box = document.getElementById("api-diff");
+  let html = `<div style="margin-bottom:8px"><b style="color:var(--text)">Summary:</b> ${apiQs.length} in API · ${faqData.items.length} in page · ${same.length} identical · ${changed.length} answer differs · ${onlyApi.length} only in API · ${onlyPage.length} only in page</div>`;
+
+  onlyApi.forEach(q => {
+    html += `<div class="row only-api"><span class="tag only-api">only in API</span> <span class="q">${esc(q.question)}</span> <span style="opacity:.6">[${q.slug}/${q.key}]</span></div>`;
+  });
+  onlyPage.forEach(it => {
+    html += `<div class="row only-page"><span class="tag only-page">only in page</span> <span class="q">${esc(it.question)}</span> <span style="opacity:.6">[${esc(it.category)}]</span></div>`;
+  });
+  changed.forEach(c => {
+    html += `<div class="row changed"><span class="tag changed">answer differs</span> <span class="q">${esc(c.api.question)}</span></div>`;
+  });
+
+  box.innerHTML = html;
+  document.getElementById("api-export-wrap").style.display = "block";
+  toast("Comparison ready");
+}
+
+function exportApiFormat() {
+  if (!apiData) { toast("Load the API first (Compare)"); return ""; }
+  const pageMap = new Map();
+  faqData.items.forEach(it => pageMap.set(apiNorm(it.question), it));
+  const data = apiData.data.map(cat => ({
+    slug: cat.slug,
+    label: cat.label,
+    description: cat.description,
+    icon: cat.icon,
+    video: cat.video,
+    questions: (cat.questions || []).map(q => {
+      const p = pageMap.get(apiNorm(q.question));
+      return {
+        key: q.key,
+        question: p ? p.question : q.question,
+        answer: p ? htmlToMarkdown(p.answer) : q.answer,
+        image: q.image
+      };
+    })
+  }));
+  return JSON.stringify({ data }, null, 2);
+}
+
+document.getElementById("btn-api").addEventListener("click", () => {
+  document.getElementById("api-modal").classList.add("show");
+});
+document.getElementById("api-cancel").addEventListener("click", () => {
+  document.getElementById("api-modal").classList.remove("show");
+});
+document.getElementById("api-modal").addEventListener("click", e => {
+  if (e.target.id === "api-modal") document.getElementById("api-modal").classList.remove("show");
+});
+document.getElementById("api-load").addEventListener("click", compareApi);
+
+document.getElementById("api-copy").addEventListener("click", () => {
+  const out = exportApiFormat();
+  if (!out) return;
+  const ta = document.getElementById("api-output");
+  ta.value = out;
+  const done = () => toast("Copied");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(out).then(done, () => { ta.select(); document.execCommand("copy"); done(); });
+  } else {
+    ta.select(); document.execCommand("copy"); done();
+  }
 });
 
 /* ============================================================

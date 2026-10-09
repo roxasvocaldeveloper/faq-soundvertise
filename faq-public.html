@@ -458,6 +458,7 @@
       <label>Your version in the developer's API format (copy &amp; paste to the developer)</label>
       <textarea id="api-output" style="min-height:180px" readonly></textarea>
       <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="api-download-imgs">Download images</button>
         <button type="button" class="btn btn-primary" id="api-copy">Copy my version</button>
       </div>
     </div>
@@ -957,6 +958,28 @@ document.querySelectorAll(".ed-btn").forEach(btn => {
     else if (cmd === "decsize") applySize(-2);
     else if (cmd === "remove") document.execCommand("removeFormat", false, null);
   });
+});
+
+// Incolla come testo semplice: evita che il testo copiato da Gemini/Google Docs
+// venga incollato con colori/classi inline (es. testo nero su sfondo scuro).
+document.getElementById("f-a").addEventListener("paste", e => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const lines = text.split("\n");
+  const frag = document.createDocumentFragment();
+  lines.forEach((line, i) => {
+    if (i > 0) frag.appendChild(document.createElement("br"));
+    frag.appendChild(document.createTextNode(line));
+  });
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  range.insertNode(frag);
+  range.setStartAfter(frag);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
 });
 
 /* ============================================================
@@ -1784,6 +1807,30 @@ document.getElementById("api-copy").addEventListener("click", () => {
   } else {
     ta.select(); document.execCommand("copy"); done();
   }
+});
+
+document.getElementById("api-download-imgs").addEventListener("click", () => {
+  let count = 0;
+  for (const it of faqData.items) {
+    (it.images || []).forEach((src, i) => {
+      if (!src.startsWith("data:image/")) return;
+      const m = src.match(/^data:image\/(\w+);base64,/);
+      const ext = m ? m[1] : "png";
+      const b64 = src.split(",")[1];
+      if (!b64) return;
+      const bytes = atob(b64);
+      const arr = new Uint8Array(bytes.length);
+      for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j);
+      const blob = new Blob([arr], { type: "image/" + ext });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (it.id || "faq") + "-" + (i + 1) + "." + ext;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      count++;
+    });
+  }
+  toast(count ? ("Downloading " + count + " image" + (count === 1 ? "" : "s")) : "No local images to download");
 });
 
 /* ============================================================

@@ -1018,10 +1018,51 @@ document.querySelectorAll(".ed-btn").forEach(btn => {
   });
 });
 
-// Incolla come testo semplice: evita che il testo copiato da Gemini/Google Docs
-// venga incollato con colori/classi inline (es. testo nero su sfondo scuro).
+// Incolla mantenendo gli elenchi/grassetto ma rimuovendo colori e stili inline
+// (evita il testo nero da Gemini/Google Docs e preserva i puntini).
+function pasteAsCleanHtml(html) {
+  const div = document.createElement("div");
+  div.innerHTML = String(html);
+  function walk(node) {
+    let out = "";
+    for (const ch of Array.from(node.childNodes)) {
+      if (ch.nodeType === 3) { out += ch.textContent; continue; }
+      if (ch.nodeType !== 1) continue;
+      const tag = ch.tagName.toLowerCase();
+      if (tag === "script" || tag === "style" || tag === "iframe") continue;
+      if (tag === "br") { out += "<br>"; continue; }
+      if (tag === "b" || tag === "strong") { out += "<b>" + walk(ch) + "</b>"; continue; }
+      if (tag === "i" || tag === "em") { out += "<i>" + walk(ch) + "</i>"; continue; }
+      if (tag === "ul" || tag === "ol") {
+        let items = "";
+        for (const li of Array.from(ch.children)) {
+          if (li.tagName.toLowerCase() === "li") items += "<li>" + walk(li) + "</li>";
+        }
+        out += "<ul>" + items + "</ul>";
+        continue;
+      }
+      if (tag === "li") { out += walk(ch); continue; }
+      if (tag === "p" || tag === "div" || /^h[1-6]$/.test(tag)) {
+        out += "<br><br>" + walk(ch) + "<br><br>";
+        continue;
+      }
+      out += walk(ch); // span/font/altri → solo contenuto
+    }
+    return out;
+  }
+  let s = walk(div);
+  s = s.replace(/(<br>){3,}/g, "<br><br>");
+  s = s.replace(/^(<br>)+|(<br>)+$/g, "");
+  return s;
+}
+
 document.getElementById("f-a").addEventListener("paste", e => {
   e.preventDefault();
+  const html = (e.clipboardData || window.clipboardData).getData("text/html");
+  if (html) {
+    document.execCommand("insertHTML", false, pasteAsCleanHtml(html));
+    return;
+  }
   const text = (e.clipboardData || window.clipboardData).getData("text/plain");
   const sel = window.getSelection();
   if (!sel.rangeCount) return;
